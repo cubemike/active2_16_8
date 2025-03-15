@@ -43,7 +43,7 @@ def find_max_dimensions_and_offsets(all_text_sets, desired_text_height, font):
         width = math.ceil(max_right-max_left)
         x_offset = -max_left
 
-        results.append((width, global_height, x_offset, global_y_offset))
+        results.append((width, global_height+4, x_offset, global_y_offset+2))
 
     return results
 
@@ -90,9 +90,9 @@ months = [m.lower() for m in months]
 month_colors = [red, green, red, green, red, red,
                 red, green, yellow, orange, pink, white]
 
-days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
+days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 days = [d.lower() for d in days]
-day_colors = [white, white, white, white, white, red, blue]
+day_colors = [blue, white, white, white, white, white, red]
 numbers = list('0123456789-.')
 numbers.append('°')
 digits = list('0123456789-.')
@@ -109,20 +109,21 @@ print(dimensions)
 digit_sets = [digits]
 dimensions_digits = find_max_dimensions_and_offsets(digit_sets, digit_height, font)
 digit_dims, = dimensions_digits
+print(digit_dims)
 
 
-for idx, text in enumerate(months):
-    surface = create_text_image(text, month_colors[idx], *month_dims, text_height, font)
-    surface.write_to_png(f"month_{idx+1}.png")
-
-for idx, text in enumerate(days):
-    surface = create_text_image(text, day_colors[idx], *day_dims, text_height, font)
-    surface.write_to_png(f"day_{idx}.png")
+#for idx, text in enumerate(months):
+#    surface = create_text_image(text, month_colors[idx], *month_dims, text_height, font)
+#    surface.write_to_png(f"month_{idx}.png")
+#
+#for idx, text in enumerate(days):
+#    surface = create_text_image(text, day_colors[idx], *day_dims, text_height, font)
+#    surface.write_to_png(f"weekday_{idx}.png")
 
 for idx, text in enumerate(numbers):
     surface = create_text_image(text, "FFFFFF", *number_dims, text_height, font)
-    surface.write_to_png(f"digit_{text_height}_{text}.png")
+    surface.write_to_png(f"digit_50/{text}.png")
 
 for idx, text in enumerate(digits):
     surface = create_text_image(text, "FFFFFF", *digit_dims, digit_height, font)
-    surface.write_to_png(f"digit_{digit_height}_{text}.png")
+    surface.write_to_png(f"digit_20/{text}.png")

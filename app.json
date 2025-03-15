@@ -1,8 +1,8 @@
 {
   "configVersion": "v2",
   "app": {
-    "appId": 10013,
-    "appName": "Empty",
+    "appId": 30014,
+    "appName": "Natural_16_8",
     "appType": "watchface",
     "version": {
       "code": 2,
@@ -12,7 +12,7 @@
     "description": "Empty watchface",
     "icon": "icon.png"
   },
-  "permissions": ["device:os.notification"],
+  "permissions": [],
   "runtime": {
     "apiVersion": {
       "compatible": "3.0.0",

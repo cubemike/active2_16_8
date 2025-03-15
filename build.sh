@@ -7,7 +7,7 @@ currdir=$(pwd)
 
 (
 	cd assets/active2
-	python3 labels.py
+	#python3 labels.py
 	python3 clock.py
 )
 
