@@ -26,13 +26,32 @@ unzip device.zip -d device
 	zip -r ../device.zip *
 )
 
-zip active2.zpk app-side.zip device.zip
+date_now=$(date "+%Y_%m_%d_%H_%M_%S")
+filename=active2_$date_now.zpk
+zip $filename app-side.zip device.zip
 
-url=$(pyupload --host catbox $tmpdir/active2.zpk | grep -o http.*)
+#url=$(pyupload --host catbox $tmpdir/active2.zpk | grep -o http.*)
 
-url=$(echo $url | sed 's/https/zpkd1/')
+cp $filename ~/mpzie/data/watchfaces/
+cd
+rm -r $tmpdir
 
-echo $tmpdir
-echo $url
+cd ~/mpzie
+git add data/watchfaces
+git commit -m "New active2 zpk"
+git push
 
-qrcode-terminal "$url"
+#url=$(echo $url | sed 's/https/zpkd1/')
+url="mzielinski.info/watchfaces/$filename"
+
+echo https://$url
+
+while true; do
+	if curl --output /dev/null --silent --head --fail "https://$url"; then
+		break
+	fi
+	echo "Waiting..."
+	sleep 1
+done
+
+qrcode-terminal "zpkd1://$url"

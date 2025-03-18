@@ -1,12 +1,12 @@
 {
   "configVersion": "v2",
   "app": {
-    "appId": 30014,
-    "appName": "Natural_16_8",
+    "appId": 20014,
+    "appName": "Natural",
     "appType": "watchface",
     "version": {
-      "code": 2,
-      "name": "2.0"
+      "code": 1,
+      "name": "1.0"
     },
     "vender": "zepp",
     "description": "Empty watchface",
@@ -15,9 +15,9 @@
   "permissions": [],
   "runtime": {
     "apiVersion": {
-      "compatible": "3.0.0",
-      "target": "3.0.0",
-      "minVersion": "3.0.0"
+      "compatible": "1.0.0",
+      "target": "1.0.1",
+      "minVersion": "1.0.0"
     }
   },
   "targets": {
@@ -57,5 +57,5 @@
     }
   },
   "defaultLanguage": "en-US",
-  "debug": false
+  "debug": true
 }
