@@ -75,13 +75,13 @@ def create_text_image(text, color, width, height, x_offset, y_offset, desired_te
 #month_white = "ffffff"
 #month_blue = "4853f7"
 
-red = "FF4444"
+red = "FF5555"
 orange = "FFb144"
-yellow = "FFFF44"
-green = "44FF44"
-cyan = "44FFFF"
-blue = "5555FF"
-pink = "FF44FF"
+yellow = "FFFF55"
+green = "55FF55"
+cyan = "55FFFF"
+blue = "7777FF"
+pink = "FF55FF"
 white = "FFFFFF"
 
 months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
@@ -98,7 +98,7 @@ numbers.append('°')
 digits = list('0123456789-.')
 
 text_height = 50
-digit_height = 20
+digit_height = 25
 font = 'ubuntu mono'
 
 all_sets = [months, days, numbers]
@@ -112,13 +112,13 @@ digit_dims, = dimensions_digits
 print(digit_dims)
 
 
-#for idx, text in enumerate(months):
-#    surface = create_text_image(text, month_colors[idx], *month_dims, text_height, font)
-#    surface.write_to_png(f"month_{idx}.png")
-#
-#for idx, text in enumerate(days):
-#    surface = create_text_image(text, day_colors[idx], *day_dims, text_height, font)
-#    surface.write_to_png(f"weekday_{idx}.png")
+for idx, text in enumerate(months):
+    surface = create_text_image(text, month_colors[idx], *month_dims, text_height, font)
+    surface.write_to_png(f"months/{idx}.png")
+
+for idx, text in enumerate(days):
+    surface = create_text_image(text, day_colors[idx], *day_dims, text_height, font)
+    surface.write_to_png(f"weekdays/{idx}.png")
 
 for idx, text in enumerate(numbers):
     surface = create_text_image(text, "FFFFFF", *number_dims, text_height, font)
@@ -126,4 +126,4 @@ for idx, text in enumerate(numbers):
 
 for idx, text in enumerate(digits):
     surface = create_text_image(text, "FFFFFF", *digit_dims, digit_height, font)
-    surface.write_to_png(f"digit_20/{text}.png")
+    surface.write_to_png(f"digit_25/{text}.png")

@@ -6,13 +6,13 @@ let handImg = '';
 let ticksImg = null;
 let numbersImg = null;
 let sunsetImg = null;
-let monthText = null;
-let dayText = null;
-let weekdayText = null;
+let monthTextImg = null;
+let dayTextImg = null;
+let weekdayTextImg = null;
 let weatherImg = null;
-let weatherLowText = null;
-let weatherHighText = null;
-let weatherCurrentText = null;
+let weatherLowTextImg = null;
+let weatherHighTextImg = null;
+let weatherCurrentTextImg = null;
 
 let weatherSensor = null;
 
@@ -48,18 +48,24 @@ const weekday_colors = [colors.blue, colors.white, colors.white, colors.white,
 				        colors.white, colors.white, colors.red]
 
 function setMonth(month) {
-	monthText.setProperty(hmUI.prop.MORE, {text: months[month],
-										color: month_colors[month]});
+	monthText.setProperty(hmUI.prop.MORE, {src: `months/${month}.png`});
 }
 
 function setDay(day) {
-	dayText.setProperty(hmUI.prop.MORE, {text: "" + day});
+	dayTextImg.setProperty(hmUI.prop.TEXT, `${day}`);
 }
 
 function setWeekday(weekday) {
-	weekdayText.setProperty(hmUI.prop.MORE, {text: weekdays[weekday],
-										  color: weekday_colors[weekday]});
+	weekdayTextImg.setProperty(hmUI.prop.MORE, {src: `weekdays/${weekday}.png`});
 }
+
+function getDigitFontArray(size) {
+	array = []
+	for (i = 0; i < 10; i++) {
+		array.push(`digit_${size}/${i}.png`);
+	}
+	return array
+}	
 
 function log(obj) {
 	console.log(JSON.stringify(obj, null, 4), '\n');
@@ -73,16 +79,16 @@ function setWeather() {
 					 	  solar: weatherData.tideData.data[0] };
 	log(currentData);
 
-	weatherHighText.setProperty(hmUI.prop.MORE, {text: `${currentData.forecast.high}`});
-	weatherLowText.setProperty(hmUI.prop.MORE, {text: `${currentData.forecast.low}`});
-	weatherCurrentText.setProperty(hmUI.prop.MORE, {text: `${currentData.current}°`});
+	//weatherHighText.setProperty(hmUI.prop.MORE, {text: `${currentData.forecast.high}`});
+	//weatherLowText.setProperty(hmUI.prop.MORE, {text: `${currentData.forecast.low}`});
+	//weatherCurrentText.setProperty(hmUI.prop.MORE, {text: `${currentData.current}°`});
 	weatherImg.setProperty(hmUI.prop.MORE, {src: `weather/${currentData.forecast.index}.png`});
 
 	setSunset(currentData.solar.sunset.hour+currentData.solar.sunset.minute/60)
 }
 
 function setHeartRate() {
-	heartText.setProperty(hmUI.prop.MORE, {text: heartSensor.last});
+	heartTextImg.setProperty(hmUI.prop.TEXT, `${heartSensor.last}`);
 }
 
 function hourToAngle_16_8(hour)
@@ -127,8 +133,6 @@ function setTime(hour)
 
 	src = 'hands/hand_8_' + fracIdx + '.png'
 
-	log({angle:angle.deg, src:src})
-
 	handImg.setProperty(hmUI.prop.MORE, {
 		angle: angle.deg,
 		src: src
@@ -167,7 +171,7 @@ function setFace() {
 	} else {
 		hour = 8+0/60
 		month = 0
-		weekday = 3
+		weekday = 1
 		day = 30
 	}
 
@@ -181,9 +185,15 @@ function setFace() {
     if (hour < 8) {
         srcTicks = 'faces/ticks_8.png'
         srcNumbers = 'faces/numbers_8.png'
+		sunsetImg.setProperty(hmUI.prop.MORE, {
+			alpha: 0,
+		});
     } else {
         srcTicks = 'faces/ticks_16.png'
         srcNumbers = 'faces/numbers_16.png'
+		sunsetImg.setProperty(hmUI.prop.MORE, {
+			alpha: 0xff,
+		});
 	}
 
 	ticksImg.setProperty(hmUI.prop.MORE, {
@@ -209,12 +219,12 @@ function setFace() {
 		//else if (hour > 21)
 		//	hour = 11
 		if (hour == 24)
-			hour = 8
+			hour = 0
 
 		month = (month+1)%12
 		//day = day%31+1
 		day++
-		if (day > 31) day = 10
+		if (day > 31) day = 1
 		weekday = (weekday+1)%7
 
 		console.log("\nhour:    " + hour,
@@ -232,9 +242,11 @@ function setFace() {
 		if (hour < 8) {
 			srcTicks = 'faces/ticks_8.png'
 			srcNumbers = 'faces/numbers_8.png'
+			sunset_alpha = 0
 		} else {
 			srcTicks = 'faces/ticks_16.png'
 			srcNumbers = 'faces/numbers_16.png'
+			sunset_alpha = 0xff
 		}
 
 		ticksImg.setProperty(hmUI.prop.MORE, {
@@ -242,6 +254,9 @@ function setFace() {
 		});
 		numbersImg.setProperty(hmUI.prop.MORE, {
 			src: srcNumbers
+		});
+		sunsetImg.setProperty(hmUI.prop.MORE, {
+			alpha: sunset_alpha,
 		});
 	}
 }
@@ -311,29 +326,40 @@ WatchFace({
 			src: "icons8-heart-48.png"
 		});
 
-		heartText = hmUI.createWidget(hmUI.widget.TEXT, {
+		//heartText = hmUI.createWidget(hmUI.widget.TEXT, {
+		//	x: 230,
+		//	y: 120,
+		//	font: "UbuntuMono-Regular.ttf",
+		//	text_size: 50,
+		//	align_h: hmUI.align.LEFT,
+		//	text: '0123456789',
+		//	color: 0xffffff
+		//});
+
+		heartTextImg = hmUI.createWidget(hmUI.widget.TEXT_IMG, {
 			x: 230,
-			y: 120,
-			font: "UbuntuMono-Regular.ttf",
-			text_size: 50,
-			align_h: hmUI.align.LEFT,
-			text: '0123456789',
-			color: 0xffffff
+			y: 125,
+			font_array: getDigitFontArray(50),
 		});
 
-		weekdayText = hmUI.createWidget(hmUI.widget.TEXT, {
+		//weekdayText = hmUI.createWidget(hmUI.widget.TEXT, {
+		//	x: date_offset_x,
+		//	y: 205,
+		//	w: 100,
+		//	font: "UbuntuMono-Regular.ttf",
+		//	text_size: 50,
+		//	align_h: hmUI.align.LEFT,
+		//	text: 'abcdefghijklmnopqrstuvwxyz,'
+		//});
+
+		weekdayTextImg = hmUI.createWidget(hmUI.widget.IMG, {
 			x: date_offset_x,
-			y: 205,
-			w: 100,
-			font: "UbuntuMono-Regular.ttf",
-			text_size: 50,
-			align_h: hmUI.align.LEFT,
-			text: 'abcdefghijklmnopqrstuvwxyz,'
+			y: 207,
 		});
 
 		commaText = hmUI.createWidget(hmUI.widget.TEXT, {
 			x: date_offset_x+70,
-			y: 205,
+			y: 207,
 			w: 100,
 			color: 0xffffff,
 			font: "UbuntuMono-Regular.ttf",
@@ -342,63 +368,97 @@ WatchFace({
 			text: ','
 		});
 
-		monthText = hmUI.createWidget(hmUI.widget.TEXT, {
+		//monthText = hmUI.createWidget(hmUI.widget.TEXT, {
+		//	x: date_offset_x + 105,
+		//	y: 205,
+		//	w: 200,
+		//	font: "UbuntuMono-Regular.ttf",
+		//	align_h: hmUI.align.CENTER_LEFT,
+		//	text_size: 50,
+		//	text: "abcdefghijklmnopqrstuvwxyz"
+		//});
+
+		monthText = hmUI.createWidget(hmUI.widget.IMG, {
 			x: date_offset_x + 105,
-			y: 205,
-			w: 200,
-			font: "UbuntuMono-Regular.ttf",
-			align_h: hmUI.align.CENTER_LEFT,
-			text_size: 50,
-			text: "abcdefghijklmnopqrstuvwxyz"
+			y: 207,
 		});
 
-		dayText = hmUI.createWidget(hmUI.widget.TEXT, {
+		//dayText = hmUI.createWidget(hmUI.widget.TEXT, {
+		//	x: date_offset_x + 195,
+		//	y: 202,
+		//	w: 200,
+		//	color: 0xffffff,
+		//	font: "UbuntuMono-Regular.ttf",
+		//	align_h: hmUI.align.LEFT,
+		//	text_size: 50,
+		//	text: '0123456789'
+		//});
+
+		dayTextImg = hmUI.createWidget(hmUI.widget.TEXT_IMG, {
 			x: date_offset_x + 195,
-			y: 205,
-			w: 200,
-			color: 0xffffff,
-			font: "UbuntuMono-Regular.ttf",
-			align_h: hmUI.align.LEFT,
-			text_size: 50,
-			text: '0123456789'
+			y: 207,
+			font_array: getDigitFontArray(50),
 		});
 
+		//weatherHighText = hmUI.createWidget(hmUI.widget.TEXT, {
+		//	x: 0 + weather_offset_x,
+		//	y: 0 + weather_offset_y,
+		//	w: 30,
+		//	color: 0xffffff,
+		//	font: 'UbuntuMono-Regular.ttf',
+		//	text_size: 25,
+		//	text: "0123456789",
+		//	negative_image: 'digit_20/-.png',
+		//	align_h: hmUI.align.RIGHT,
+		//	type: hmUI.data_type.WEATHER_HIGH,
+		//});
 
-		weatherHighText = hmUI.createWidget(hmUI.widget.TEXT, {
+		weatherHighImg = hmUI.createWidget(hmUI.widget.TEXT_IMG, {
 			x: 0 + weather_offset_x,
-			y: 0 + weather_offset_y,
-			w: 30,
-			color: 0xffffff,
-			font: 'UbuntuMono-Regular.ttf',
-			text_size: 25,
-			text: "0123456789",
-			egative_image: 'digit_20/-.png',
-			align_h: hmUI.align.RIGHT,
-			type: hmUI.data_type.WEATHER_HIGH,
+			y: 0 +  weather_offset_y,
+			font_array: getDigitFontArray(25),
+			type: hmUI.data_type.WEATHER_HIGH
 		});
 
-		weatherLowText = hmUI.createWidget(hmUI.widget.TEXT, {
-			x: 0  + weather_offset_x,
-			y: 22 + weather_offset_y,
-			w: 30,
-			color: 0xffffff,
-			font: 'UbuntuMono-Regular.ttf',
-			text_size: 25,
-			text: "0123456789",
-			align_h: hmUI.align.RIGHT,
-			type: hmUI.data_type.WEATHER_LOW,
+		//weatherLowText = hmUI.createWidget(hmUI.widget.TEXT, {
+		//	x: 0  + weather_offset_x,
+		//	y: 22 + weather_offset_y,
+		//	w: 30,
+		//	color: 0xffffff,
+		//	font: 'UbuntuMono-Regular.ttf',
+		//	text_size: 25,
+		//	text: "0123456789",
+		//	align_h: hmUI.align.RIGHT,
+		//	type: hmUI.data_type.WEATHER_LOW,
+		//});
+
+		weatherLowImg = hmUI.createWidget(hmUI.widget.TEXT_IMG, {
+			x: 0 + weather_offset_x,
+			y: 22 +  weather_offset_y,
+			font_array: getDigitFontArray(25),
+			type: hmUI.data_type.WEATHER_LOW
 		});
 
-		weatherCurrentText = hmUI.createWidget(hmUI.widget.TEXT, {
+		//weatherCurrentText = hmUI.createWidget(hmUI.widget.TEXT, {
+		//	x: 35 + weather_offset_x,
+		//	y: -2 +  weather_offset_y,
+		//	w: 70,
+		//	color: 0xffffff,
+		//	font: 'UbuntuMono-Regular.ttf',
+		//	text_size: 50,
+		//	align_h: hmUI.align.RIGHT,
+		//	text: "0123456789°"
+		//});
+
+		weatherCurrentImg = hmUI.createWidget(hmUI.widget.TEXT_IMG, {
 			x: 35 + weather_offset_x,
 			y: -2 +  weather_offset_y,
-			w: 70,
-			color: 0xffffff,
-			font: 'UbuntuMono-Regular.ttf',
-			text_size: 50,
-			align_h: hmUI.align.RIGHT,
-			text: "0123456789°"
+			font_array: getDigitFontArray(50),
+			unit_en: 'digit_50/°.png',
+			type: hmUI.data_type.WEATHER_CURRENT
 		});
+
+		console.log(getDigitFontArray(50))
 
 		weatherImg = hmUI.createWidget(hmUI.widget.IMG, {
 			x: weather_offset_x + 110,

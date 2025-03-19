@@ -22,7 +22,7 @@ def saveFace(filename='face.png', hourStart=0, hourStop=24, clockwiseTextStart=1
 	ctx.paint()
 
 	# Move coordinate system to center and scale
-	ctx.translate(233.5, 233.5)
+	ctx.translate(233, 233)
 
 	# Draw clock circle
 	#ctx.arc(0, 0, 232, 0, 2 * math.pi)
@@ -82,40 +82,8 @@ def saveFace(filename='face.png', hourStart=0, hourStop=24, clockwiseTextStart=1
 			ctx.set_source_rgba(1, 1, 1, 1)
 			ctx.set_line_width(tick_width)
 			ctx.stroke()
-		
-
 
 		ctx.restore()
-
-	#for hour in range(int(hourStart), int(hourStop+1)):
-	#	# Draw numbers
-	#	ctx.set_font_size(35)
-	#	ctx.set_source_rgba(1, 1, 1, 1)
-	#	ctx.select_font_face("ubuntu mono", 
-	#		cairo.FONT_SLANT_NORMAL, 
-	#		cairo.FONT_WEIGHT_NORMAL)
-	#	
-	#	# Get text dimensions for centering
-	#	# number = str(12 if hour == 0 else hour)
-	#	number = str(int(hour))
-	#	text_extents = ctx.text_extents(number)
-
-	#	angle = hourToTheta(hour, night)
-	#	x = -171*math.sin(angle)
-	#	y = 178*math.cos(angle)
-	#	
-	#	# Position and rotate text
-	#	ctx.move_to(x - text_extents.width/2-1 ,  y + text_extents.height/2)
-	#	#ctx.rotate(math.pi/2)  # Rotate text to face outward
-	#	ctx.set_source_rgba(0, 0, 0, 1)
-	#	ctx.text_path(number)
-	#	ctx.set_line_width(3)
-	#	ctx.stroke()
-
-	#	ctx.set_source_rgba(1, 1, 1, 1)
-	#	ctx.move_to(x - text_extents.width/2-1 ,  y + text_extents.height/2)
-	#	ctx.text_path(number)
-	#	ctx.fill()
 
 	ctx.arc(0, 0, 233, 0, 2 * math.pi)
 	ctx.arc(0, 0, 400, 0, 2 * math.pi)
@@ -140,7 +108,7 @@ def saveHand(filename, time):
 	ctx.set_line_join(cairo.LINE_JOIN_ROUND)
 
 	# Move coordinate system to center and scale
-	ctx.translate(233.5, 233.5)
+	ctx.translate(233, 233)
 
 	ctx.save()
 	ctx.rotate(-math.pi+hourToTheta(time))
@@ -182,7 +150,7 @@ def saveSunset(filename, time):
 	ctx.set_line_join(cairo.LINE_JOIN_ROUND)
 
 	# Move coordinate system to center and scale
-	ctx.translate(233.5, 233.5)
+	ctx.translate(233, 233)
 
 	ctx.save()
 	ctx.rotate(-math.pi+hourToTheta(time))
@@ -223,7 +191,7 @@ def saveDial(filename, hourStart, hourStop, night):
 	ctx.paint()
 
 	# Move coordinate system to center and scale
-	ctx.translate(233.5, 233.5)
+	ctx.translate(233, 233)
 
 	# Draw clock circle
 	#ctx.arc(0, 0, 232, 0, 2 * math.pi)
