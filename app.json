@@ -21,7 +21,7 @@
     }
   },
   "targets": {
-    "active2": {
+    "common": {
       "module": {
         "watchface": {
           "path": "watchface/index",
