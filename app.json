@@ -2,14 +2,14 @@
   "configVersion": "v2",
   "app": {
     "appId": 20014,
-    "appName": "Natural",
+    "appName": "Hexadecimal",
     "appType": "watchface",
     "version": {
       "code": 1,
       "name": "1.0"
     },
     "vender": "zepp",
-    "description": "Empty watchface",
+    "description": "A third of our lives are spent asleep. The 16 waking hours you get each day are shown all at once on the main dial. The 8 you spend asleep are on their own dial, hidden away in the liminal space between falling asleep and waking up",
     "icon": "icon.png"
   },
   "permissions": [],
@@ -32,20 +32,8 @@
       },
       "platforms": [
 		{
-		  "name": "Active 2",
-		  "deviceSource": 8913152
-		},
-		{
-		  "name": "Active 2",
-		  "deviceSource": 8913153
-		},
-		{
-		  "name": "Active 2",
-		  "deviceSource": 8913155
-		},
-		{
-		  "name": "Active 2",
-		  "deviceSource": 8913159
+		  "name": "active2p-us",
+		  "deviceSource": 10092807
 		}
       ],
       "designWidth": 466
@@ -53,7 +41,7 @@
   },
   "i18n": {
     "en-US": {
-      "appName": "Empty"
+      "appName": "Hexadecimal"
     }
   },
   "defaultLanguage": "en-US",
