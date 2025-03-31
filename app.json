@@ -2,7 +2,7 @@
   "configVersion": "v2",
   "app": {
     "appId": 20014,
-    "appName": "Hexadecimal",
+    "appName": "0x10",
     "appType": "watchface",
     "version": {
       "code": 1,
@@ -32,7 +32,6 @@
       },
       "platforms": [
 		{
-		  "name": "active2p-us",
 		  "deviceSource": 10092807
 		}
       ],
@@ -41,7 +40,7 @@
   },
   "i18n": {
     "en-US": {
-      "appName": "Hexadecimal"
+      "appName": "0x10"
     }
   },
   "defaultLanguage": "en-US",

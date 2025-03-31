@@ -6,7 +6,7 @@ tmpdir=$(mktemp -d)
 currdir=$(pwd)
 
 (
-	cd assets/active2
+	cd assets/*
 	#python3 labels.py
 	python3 clock.py
 )
@@ -32,17 +32,17 @@ zip $filename app-side.zip device.zip
 
 #url=$(pyupload --host catbox $tmpdir/active2.zpk | grep -o http.*)
 
-cp $filename ~/mpzie/data/watchfaces/
+cp $filename ~/cubemike/data/watchfaces/
 cd
 rm -r $tmpdir
 
-cd ~/mpzie
+cd ~/cubemike
 git add data/watchfaces
 git commit -m "New active2 zpk"
 git push
 
 #url=$(echo $url | sed 's/https/zpkd1/')
-url="mzielinski.info/watchfaces/$filename"
+url="cubemike.github.io/data/watchfaces/$filename"
 
 echo https://$url
 

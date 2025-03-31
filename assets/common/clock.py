@@ -1,243 +1,379 @@
-#!/usr/bin/python3
+import os
 
 import cairo
 import math
+from enum import Enum
+
+class Hand(Enum):
+    CURSOR_ANGLED_BACK = 1
+    CURSOR_CURVED_BACK = 2
+    RETICLE = 3
+    CURSOR_FLOATING = 4
+
+def drawHand(ctx, hand):
+    match hand:
+        case Hand.CURSOR_ANGLED_BACK:
+            ctx.set_source_rgba(0, 0, 0, 1)
+            ctx.set_line_width(5)
+            ctx.move_to(-10, 155)
+            ctx.line_to(0, 220)
+            ctx.line_to(10, 155)
+            ctx.line_to(0, 160)
+            ctx.line_to(-10, 155)
+            ctx.stroke()
+
+            ctx.set_source_rgb(237/255, 115/255, 46/255)
+            ctx.set_line_width(3)
+            ctx.move_to(-10, 155)
+            ctx.line_to(0, 220)
+            ctx.line_to(10, 155)
+            ctx.line_to(0, 160)
+            ctx.line_to(-10, 155)
+            ctx.stroke_preserve()
+            ctx.fill()
+
+        case Hand.CURSOR_CURVED_BACK:
+            back_x         = 15
+            back_y         = 145
+            bezier_x     = 5
+            bezier_y     = 151
+            point_y     = 220
+
+            ctx.set_source_rgba(0, 0, 0, 1)
+            ctx.set_line_width(5)
+            ctx.move_to(-back_x, back_y)
+            ctx.curve_to(-bezier_x, bezier_y, bezier_x, bezier_y, back_x, back_y)
+            ctx.line_to(0, point_y)
+            ctx.line_to(-back_x, back_y)
+            ctx.stroke()
+
+            ctx.set_source_rgb(237/255, 115/255, 46/255)
+            ctx.set_line_width(3)
+            ctx.move_to(-back_x, back_y)
+            ctx.curve_to(-bezier_x, bezier_y, bezier_x, bezier_y, back_x, back_y)
+            ctx.line_to(0, point_y)
+            ctx.line_to(-back_x, back_y)
+            ctx.stroke_preserve()
+            ctx.fill()
+            
+            #ctx.set_line_width(5)
+            #ctx.stroke()
+            #ctx.arc(0, 0, 145, 0, 2*math.pi)
+            #ctx.stroke()
+
+        case Hand.RETICLE:
+            ret_x = 10
+            ret_y = 150
+            ctx.set_line_width(5)
+            ctx.set_source_rgb(237/255, 115/255, 46/255)
+
+            ctx.move_to(-ret_x, 240)
+            ctx.line_to(-ret_x, ret_y)
+            #ctx.move_to(0, ret_y)
+            ctx.arc(0, ret_y, ret_x, math.pi, 0)
+            ctx.move_to(ret_x, ret_y)
+            ctx.line_to(ret_x, 240)
+            ctx.stroke()
+
+        case Hand.CURSOR_FLOATING:
+            back_x         = 20
+            back_y         = 145
+            point_y     = 215
+            pointer_theta = .15
+
+            ctx.set_source_rgba(0, 0, 0, 1)
+            #ctx.set_line_width(5)
+            #ctx.move_to(-back_x, back_y)
+            #ctx.line_to(0, point_y)
+            #ctx.line_to(-back_x, back_y)
+            ctx.set_line_width(7)
+            ctx.move_to(0, point_y)
+            ctx.arc(0, 0, back_y+15, math.pi/2-pointer_theta, math.pi/2+pointer_theta)
+            ctx.line_to(0, point_y)
+            ctx.stroke_preserve()
+            ctx.stroke()
+
+            ctx.set_source_rgb(237/255, 115/255, 46/255)
+            ctx.set_line_width(5)
+            ctx.move_to(0, point_y)
+            ctx.arc(0, 0, back_y+14, math.pi/2-pointer_theta, math.pi/2+pointer_theta)
+            ctx.line_to(0, point_y)
+            ctx.stroke_preserve()
+            ctx.fill()
+            #ctx.stroke()
+            
+            ctx.set_line_width(7)
+            ctx.arc(0, 0, back_y, 0, 2*math.pi)
+            ctx.stroke()
+
+            #ctx.set_line_width(7)
+            #ctx.set_source_rgba(0, 0, 0, 1)
+            #ctx.arc(0, 0, back_y+6, 0, 2*math.pi)
+            #ctx.stroke()
+            
+            
+
+def saveHand(filename, time):
+    # Create surface and context
+    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 466, 466)
+    ctx = cairo.Context(surface)
+
+    # Fill background white
+    ctx.set_source_rgba(0, 0, 0, 0)
+    ctx.paint()
+    ctx.set_line_cap(cairo.LINE_CAP_ROUND)
+    ctx.set_line_join(cairo.LINE_JOIN_ROUND)
+
+    # Move coordinate system to center and scale
+    ctx.translate(233, 233)
+
+    ctx.save()
+    ctx.rotate(-math.pi+hourToTheta(time))
+
+
+    #drawHand(ctx, Hand.CURSOR_CURVED_BACK)
+    drawHand(ctx, Hand.CURSOR_FLOATING)
+
+    ctx.restore()
+
+    # Save to file
+    surface.write_to_png(filename)
 
 def hourToTheta(hour, night=False):
 
-	if night:	
-		theta = (hour)*(2*math.pi/16) - math.pi/2
-	else:
-		theta = (hour-8)*(2*math.pi/16)
-	return theta
+    if night:    
+        theta = (hour)*(2*math.pi/16) - math.pi/2
+    else:
+        theta = (hour-8)*(2*math.pi/16)
+    return theta
 
 def saveFace(filename='face.png', hourStart=0, hourStop=24, clockwiseTextStart=12, clockwiseTextStop=19, night=False):
-	# Create surface and context
-	surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 466, 466)
-	ctx = cairo.Context(surface)
-	ctx.select_font_face("ubuntu mono")
+    # Create surface and context
+    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 466, 466)
+    ctx = cairo.Context(surface)
+    ctx.select_font_face("ubuntu mono")
 
-	# Fill background white
-	ctx.set_source_rgba(0, 0, 0, 0)
-	ctx.paint()
+    # Fill background white
+    ctx.set_source_rgba(0, 0, 0, 0)
+    ctx.paint()
 
-	# Move coordinate system to center and scale
-	ctx.translate(233, 233)
+    # Move coordinate system to center and scale
+    ctx.translate(233, 233)
 
-	# Draw clock circle
-	#ctx.arc(0, 0, 232, 0, 2 * math.pi)
-	#ctx.stroke()
+    # Draw clock circle
+    #ctx.arc(0, 0, 232, 0, 2 * math.pi)
+    #ctx.stroke()
 
-	ctx.save()
-	ctx.set_line_cap(cairo.LINE_CAP_ROUND)
-	ctx.set_line_join(cairo.LINE_JOIN_ROUND)
+    ctx.save()
+    ctx.set_line_cap(cairo.LINE_CAP_ROUND)
+    ctx.set_line_join(cairo.LINE_JOIN_ROUND)
 
-	# Draw hour markers
-	for minutes in range(int(hourStart*60), int(hourStop*60), 5):
-		hour = minutes/60
+    # Draw hour markers
+    for minutes in range(int(hourStart*60), int(hourStop*60), 5):
+        hour = minutes/60
 
-		# Save context state
-		ctx.save()
+        # Save context state
+        ctx.save()
 
-		angle = hourToTheta(minutes/60, night)
+        angle = hourToTheta(minutes/60, night)
 
-		if False: #(hour < clockwiseTextStart or hour > clockwiseTextStop):
-			ctx.rotate(angle)
-			alpha = 1
-		else:
-			ctx.rotate(angle+math.pi)
-			alpha = -1
-
-
-		if minutes%60 == 0:
-			tick_width = 5
-			tick_start = 200
-			tick_end = 240
-		elif minutes%30 == 0:
-			tick_width = 3
-			tick_start = 205
-			tick_end = 240
-		elif minutes%15 == 0:
-			tick_width = 3
-			tick_start = 215
-			tick_end = 240
-		#elif minutes%5 == 0:
-		#	ctx.move_to(0, alpha*(190+31))
-		#	ctx.line_to(0, alpha*(200+33))
-		#elif minutes%5 == 0:
-		#	ctx.move_to(0, alpha*(196+31))
-		#	ctx.line_to(0, alpha*(200+33))
+        if False: #(hour < clockwiseTextStart or hour > clockwiseTextStop):
+            ctx.rotate(angle)
+            alpha = 1
+        else:
+            ctx.rotate(angle+math.pi)
+            alpha = -1
 
 
-
-		if minutes%15 == 0:
-			ctx.move_to(0, alpha*(tick_start))
-			ctx.line_to(0, alpha*(tick_end))
-			ctx.set_source_rgba(0, 0, 0, 1)
-			ctx.set_line_width(tick_width+2)
-			ctx.stroke()
-
-			ctx.move_to(0, alpha*(tick_start))
-			ctx.line_to(0, alpha*(tick_end))
-			ctx.set_source_rgba(1, 1, 1, 1)
-			ctx.set_line_width(tick_width)
-			ctx.stroke()
-
-		ctx.restore()
-
-	ctx.arc(0, 0, 233, 0, 2 * math.pi)
-	ctx.arc(0, 0, 400, 0, 2 * math.pi)
-	ctx.set_fill_rule(cairo.FILL_RULE_EVEN_ODD)
-	ctx.set_operator(cairo.OPERATOR_CLEAR)
-	ctx.fill()
+        if minutes%60 == 0:
+            tick_width = 5
+            tick_start = 200
+            tick_end = 240
+        elif minutes%30 == 0:
+            tick_width = 3
+            tick_start = 205
+            tick_end = 240
+        elif minutes%15 == 0:
+            tick_width = 3
+            tick_start = 215
+            tick_end = 240
+        #elif minutes%5 == 0:
+        #    ctx.move_to(0, alpha*(190+31))
+        #    ctx.line_to(0, alpha*(200+33))
+        #elif minutes%5 == 0:
+        #    ctx.move_to(0, alpha*(196+31))
+        #    ctx.line_to(0, alpha*(200+33))
 
 
 
-	# Save to file
-	surface.write_to_png(filename)
+        if minutes%15 == 0:
+            ctx.move_to(0, alpha*(tick_start))
+            ctx.line_to(0, alpha*(tick_end))
+            ctx.set_source_rgba(0, 0, 0, 1)
+            ctx.set_line_width(tick_width+2)
+            ctx.stroke()
 
-def saveHand(filename, time):
-	# Create surface and context
-	surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 466, 466)
-	ctx = cairo.Context(surface)
+            ctx.move_to(0, alpha*(tick_start))
+            ctx.line_to(0, alpha*(tick_end))
+            ctx.set_source_rgba(1, 1, 1, 1)
+            ctx.set_line_width(tick_width)
+            ctx.stroke()
 
-	# Fill background white
-	ctx.set_source_rgba(0, 0, 0, 0)
-	ctx.paint()
-	ctx.set_line_cap(cairo.LINE_CAP_ROUND)
-	ctx.set_line_join(cairo.LINE_JOIN_ROUND)
+        ctx.restore()
 
-	# Move coordinate system to center and scale
-	ctx.translate(233, 233)
-
-	ctx.save()
-	ctx.rotate(-math.pi+hourToTheta(time))
-
-	# Draw clock circle
-	#ctx.arc(0, 0, 8, 0, 2 * math.pi)
-	#ctx.stroke()
-	#ctx.move_to(0, 8)
-	#ctx.line_to(0, 30)
-	#ctx.stroke()
-
-	ctx.set_source_rgba(0, 0, 0, 1)
-	ctx.set_line_width(7)
-	ctx.move_to(0, 140)
-	ctx.line_to(0, 220)
-	ctx.stroke()
-
-	ctx.set_source_rgb(237/255, 115/255, 46/255)
-	ctx.set_line_width(5)
-	ctx.move_to(0, 140)
-	ctx.line_to(0, 220)
-	ctx.stroke()
+    ctx.arc(0, 0, 233, 0, 2 * math.pi)
+    ctx.arc(0, 0, 400, 0, 2 * math.pi)
+    ctx.set_fill_rule(cairo.FILL_RULE_EVEN_ODD)
+    ctx.set_operator(cairo.OPERATOR_CLEAR)
+    ctx.fill()
 
 
-	ctx.restore()
 
-	# Save to file
-	surface.write_to_png(filename)
+    # Save to file
+    surface.write_to_png(filename)
+
 
 def saveSunset(filename, time):
-	# Create surface and context
-	surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 466, 466)
-	ctx = cairo.Context(surface)
+    # Create surface and context
+    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 466, 466)
+    ctx = cairo.Context(surface)
 
-	# Fill background white
-	ctx.set_source_rgba(0, 0, 0, 0)
-	ctx.paint()
-	ctx.set_line_cap(cairo.LINE_CAP_ROUND)
-	ctx.set_line_join(cairo.LINE_JOIN_ROUND)
+    # Fill background white
+    ctx.set_source_rgba(0, 0, 0, 0)
+    ctx.paint()
+    ctx.set_line_cap(cairo.LINE_CAP_ROUND)
+    ctx.set_line_join(cairo.LINE_JOIN_ROUND)
 
-	# Move coordinate system to center and scale
-	ctx.translate(233, 233)
+    # Move coordinate system to center and scale
+    ctx.translate(233, 233)
 
-	ctx.save()
-	ctx.rotate(-math.pi+hourToTheta(time))
+    ctx.save()
+    ctx.rotate(-math.pi+hourToTheta(time))
 
-	# Draw clock circle
-	#ctx.arc(0, 0, 8, 0, 2 * math.pi)
-	#ctx.stroke()
-	#ctx.move_to(0, 8)
-	#ctx.line_to(0, 30)
-	#ctx.stroke()
+    # Draw clock circle
+    #ctx.arc(0, 0, 8, 0, 2 * math.pi)
+    #ctx.stroke()
+    #ctx.move_to(0, 8)
+    #ctx.line_to(0, 30)
+    #ctx.stroke()
 
-	ctx.set_source_rgba(0, 0, 0, 1)
-	ctx.set_line_width(7)
-	ctx.move_to(0, 200)
-	ctx.line_to(0, 233)
-	ctx.stroke()
+    ctx.set_source_rgba(0, 0, 0, 1)
+    ctx.set_line_width(7)
+    ctx.move_to(0, 200)
+    ctx.line_to(0, 233)
+    ctx.stroke()
 
-	ctx.set_source_rgb(135/255, 88/255, 252/255)
-	ctx.set_line_width(5)
-	ctx.move_to(0, 200)
-	ctx.line_to(0, 233)
-	ctx.stroke()
+    ctx.set_source_rgb(135/255, 88/255, 252/255)
+    ctx.set_line_width(5)
+    ctx.move_to(0, 200)
+    ctx.line_to(0, 233)
+    ctx.stroke()
 
 
-	ctx.restore()
+    ctx.restore()
 
-	# Save to file
-	surface.write_to_png(filename)
+    # Save to file
+    surface.write_to_png(filename)
 
 def saveDial(filename, hourStart, hourStop, night):
 
-	surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 466, 466)
-	ctx = cairo.Context(surface)
-	ctx.select_font_face("ubuntu mono")
+    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 466, 466)
+    ctx = cairo.Context(surface)
+    ctx.select_font_face("ubuntu mono")
 
-	# Fill background white
-	ctx.set_source_rgba(0, 0, 0, 0)
-	ctx.paint()
+    # Fill background white
+    ctx.set_source_rgba(0, 0, 0, 0)
+    ctx.paint()
 
-	# Move coordinate system to center and scale
-	ctx.translate(233, 233)
+    # Move coordinate system to center and scale
+    ctx.translate(233, 233)
 
-	# Draw clock circle
-	#ctx.arc(0, 0, 232, 0, 2 * math.pi)
-	#ctx.stroke()
+    # Draw clock circle
+    #ctx.arc(0, 0, 232, 0, 2 * math.pi)
+    #ctx.stroke()
 
 
-	ctx.set_source_rgba(1, 1, 1, 1)
+    ctx.set_source_rgba(1, 1, 1, 1)
 
-	for hour in range(hourStart, int(hourStop)):
-		# Draw numbers
-		ctx.save()
-		angle = hourToTheta(hour, night)
-		ctx.rotate(angle+math.pi)
-		ctx.set_font_size(35)
-		ctx.select_font_face("ubuntu mono", 
-		cairo.FONT_SLANT_NORMAL, 
-		cairo.FONT_WEIGHT_NORMAL)
-		
-		# Get text dimensions for centering
-		# number = str(12 if hour == 0 else hour)
-		number = str(int(hour))
-		text_extents = ctx.text_extents(number)
-		
-		# Position and rotate text
-		ctx.move_to(- text_extents.width/2-2, -180 + text_extents.height/2)
-		#ctx.rotate(math.pi/2)  # Rotate text to face outward
-		ctx.show_text(number)
+    for hour in range(hourStart, int(hourStop)):
+        # Draw numbers
+        ctx.save()
+        angle = hourToTheta(hour, night)
+        ctx.rotate(angle+math.pi)
+        ctx.set_font_size(35)
+        ctx.select_font_face("ubuntu mono", 
+        cairo.FONT_SLANT_NORMAL, 
+        cairo.FONT_WEIGHT_NORMAL)
 
-	#	x = -171*math.sin(angle)
-	#	y = 178*math.cos(angle)
-		# Position and rotate text
-		ctx.move_to( -text_extents.width/2-1 ,  -180 + text_extents.height/2)
-		#ctx.rotate(math.pi/2)  # Rotate text to face outward
-		ctx.set_source_rgba(0, 0, 0, 1)
-		ctx.text_path(number)
-		ctx.set_line_width(3)
-		ctx.stroke()
+        #if night == False:
+        #    number = str(hex(int(hour-8)))[2:].upper()
+        #else:
+        #    number = str(int(hour))
 
-		ctx.set_source_rgba(1, 1, 1, 1)
-		ctx.move_to( -text_extents.width/2-1 ,  -180 + text_extents.height/2)
-		ctx.text_path(number)
-		ctx.fill()
+        #number = f"{hour:02}"
+        
+        # Get text dimensions for centering
+        # number = str(12 if hour == 0 else hour)
+        number_idx = (hour if hour <= 12 else hour-12)
+        strs = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'E', 'Δ']
+        number = strs[number_idx]
+        text_extents = ctx.text_extents(number)
+        print(number, text_extents)
 
-		ctx.restore()
 
-	surface.write_to_png(filename)
+        text_y = 175
+        
+        # Position and rotate text
+        #ctx.move_to(- text_extents.width/2-4, -text_y + text_extents.height/2)
+        #ctx.rotate(math.pi/2)  # Rotate text to face outward
+        #ctx.show_text(number)
+
+    #    x = -171*math.sin(angle)
+    #    y = 178*math.cos(angle)
+        # Position and rotate text
+        ctx.move_to( -text_extents.width/2 - text_extents.x_bearing,  -text_y + text_extents.height/2)
+        #ctx.rotate(math.pi/2)  # Rotate text to face outward
+        ctx.set_source_rgba(0, 0, 0, 1)
+        ctx.text_path(number)
+        ctx.set_line_width(3)
+        ctx.stroke()
+
+        ctx.set_line_width(3)
+        ctx.set_source_rgba(1, 1, 1, 1)
+        ctx.move_to( -text_extents.width/2 - text_extents.x_bearing,  -text_y + text_extents.height/2)
+        ctx.text_path(number)
+        ctx.fill()
+
+        ctx.restore()
+
+    surface.write_to_png(filename)
+
+def saveGradient(filename):
+    
+    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 466, 466)
+    ctx = cairo.Context(surface)
+
+    ctx.set_source_rgba(0, 0, 0, 0)
+    ctx.paint()
+
+    # Move coordinate system to center and scale
+    ctx.translate(233, 233)
+
+    gradient = cairo.RadialGradient(0, 0, 120, 0, 0, 150)
+    gradient.add_color_stop_rgba(0, 0, 0, 0, 0.1)
+    #gradient.add_color_stop_rgba(, 0, 0, 0, 0.1)
+    gradient.add_color_stop_rgba(1, 0, 0, 0, 0)
+
+    ctx.set_source(gradient)
+
+    ctx.arc(0, 0, 200, 0, 2*math.pi)
+
+    ctx.fill()
+
+    surface.write_to_png(filename)
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+os.chdir(script_dir)
 
 saveDial(filename='faces/numbers_8.png', hourStart=0, hourStop=9, night=True)
 saveDial(filename='faces/numbers_16.png', hourStart=8, hourStop=24, night=False)
@@ -245,9 +381,9 @@ saveFace(filename='faces/ticks_16.png', hourStart=8, hourStop=23.9, night=False)
 saveFace(filename='faces/ticks_8.png', hourStart=0, hourStop=8.1, night=True)
 # Since these start at 0 (during the night) we need to rotate by 4x the minutes
 for i in range(0, 8):
-	saveHand(f'hands/hand_8_{i}.png', i/60/3)
+    saveHand(f'hands/hand_8_{i}.png', i/60/3)
 
 for i in range(0, 8):
-	saveSunset(f'hands/sunset_8_{i}.png', i/60/3)
+    saveSunset(f'hands/sunset_8_{i}.png', i/60/3)
 
-
+saveGradient(filename='gradient.png')

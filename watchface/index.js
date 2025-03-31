@@ -1,6 +1,6 @@
 ﻿//import hmUI from '@zos/hmUI'
 //import * as router from '@zos/router'
-//import { Weather } from '@zos/sensor'
+//import * as hmUI from '@zos/ui'
 
 let handImg = '';
 let ticksImg = null;
@@ -16,11 +16,12 @@ let weatherCurrentTextImg = null;
 
 let weatherSensor = null;
 
+let isSimulator = false;
+
 const weather_offset_x = 165;
 const weather_offset_y = 300;
 
-const date_offset_x = 120;
-
+const date_offset_x = 112;
 
 const colors = {red: 	0xff5555,
 				orange: 0xffb144,
@@ -67,6 +68,14 @@ function getDigitFontArray(size) {
 	return array
 }	
 
+function getWeatherImageArray() {
+	array = []
+	for (i=0; i < 30; i++) {
+		array.push(`weather/${i}.png`)
+	}
+	return array
+}
+
 function log(obj) {
 	console.log(JSON.stringify(obj, null, 4), '\n');
 }
@@ -82,7 +91,7 @@ function setWeather() {
 	//weatherHighText.setProperty(hmUI.prop.MORE, {text: `${currentData.forecast.high}`});
 	//weatherLowText.setProperty(hmUI.prop.MORE, {text: `${currentData.forecast.low}`});
 	//weatherCurrentText.setProperty(hmUI.prop.MORE, {text: `${currentData.current}°`});
-	weatherImg.setProperty(hmUI.prop.MORE, {src: `weather/${currentData.forecast.index}.png`});
+	//weatherImg.setProperty(hmUI.prop.MORE, {src: `weather/${currentData.forecast.index}.png`});
 
 	setSunset(currentData.solar.sunset.hour+currentData.solar.sunset.minute/60)
 }
@@ -158,21 +167,21 @@ function setSunset(hour)
 function setFace() {
 	let date = new Date();
 
-	if (1) {
-		hour = date.getHours()+date.getMinutes()/60;
-		month = date.getMonth();
-		weekday = date.getDay();
-		day = date.getDate();
-		//console.log("\nhour:    " + hour,
-		//		    "\nmonth:   " + month,
-		//			"\nweekday: " + weekday,
-		//			"\nday:     " + day +
-		//			"\n");
-	} else {
-		hour = 8+0/60
-		month = 0
-		weekday = 1
-		day = 30
+	hour = date.getHours()+date.getMinutes()/60;
+	month = date.getMonth();
+	weekday = date.getDay();
+	day = date.getDate();
+	//console.log("\nhour:    " + hour,
+	//		    "\nmonth:   " + month,
+	//			"\nweekday: " + weekday,
+	//			"\nday:     " + day +
+	//			"\n");
+
+	if (isSimulator) {
+		hour = 12
+		month = 2
+		weekday = 0
+		day = 12
 	}
 
 	setTime(hour);
@@ -180,7 +189,7 @@ function setFace() {
 	setWeekday(weekday);
 	setDay(day);
 	setWeather();
-	setHeartRate();
+	//setHeartRate();
 
     if (hour < 8) {
         srcTicks = 'faces/ticks_8.png'
@@ -237,7 +246,7 @@ function setFace() {
 		setMonth(month);
 		setWeekday(weekday);
 		setDay(day);
-		setWeather();
+		//setWeather();
 
 		if (hour < 8) {
 			srcTicks = 'faces/ticks_8.png'
@@ -310,6 +319,12 @@ WatchFace({
 			show_level: hmUI.show_level.ONLY_NORMAL,
 		});
 
+		//gradientImg = hmUI.createWidget(hmUI.widget.IMG, {
+		//	x: 0,
+		//	y: 0,
+		//	src: 'gradient.png'
+		//});
+
 		numbersImg = hmUI.createWidget(hmUI.widget.IMG, {
 			x: 0,
 			y: 0,
@@ -340,6 +355,7 @@ WatchFace({
 			x: 230,
 			y: 125,
 			font_array: getDigitFontArray(50),
+			type: hmUI.data_type.HEART
 		});
 
 		//weekdayText = hmUI.createWidget(hmUI.widget.TEXT, {
@@ -460,9 +476,12 @@ WatchFace({
 
 		console.log(getDigitFontArray(50))
 
-		weatherImg = hmUI.createWidget(hmUI.widget.IMG, {
+		weatherImg = hmUI.createWidget(hmUI.widget.IMG_LEVEL, {
 			x: weather_offset_x + 110,
 			y: weather_offset_y + 0,
+			type: hmUI.data_type.WEATHER_CURRENT,
+			image_array: getWeatherImageArray(),
+			image_length:29
 		});
 
 		button = hmUI.createWidget(hmUI.widget.BUTTON, {
@@ -491,9 +510,13 @@ WatchFace({
 
 		weatherSensor = hmSensor.createSensor(hmSensor.id.WEATHER);
 
-		heartSensor = hmSensor.createSensor(hmSensor.id.HEART);
+		//heartSensor = hmSensor.createSensor(hmSensor.id.HEART);
 
 		//timer1 = timer.createTimer(1000, 250, testFace);
+		
+		batterySensor = hmSensor.createSensor(hmSensor.id.BATTERY)
+		if (batterySensor.current == 0)
+			isSimulator = true
 
 		console.log('done')
     },

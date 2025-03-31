@@ -61,9 +61,16 @@ def create_text_image(text, color, width, height, x_offset, y_offset, desired_te
     ctx.select_font_face(font)
     ctx.set_font_size(get_required_font_size(ctx, text, desired_text_height))
 
+    ctx.set_source_rgba(0, 0, 0, 1)
+    ctx.move_to(x_offset, y_offset)
+    ctx.text_path(text)
+    ctx.stroke()
+
     set_source_rgb(ctx, color)
     ctx.move_to(x_offset, y_offset)
-    ctx.show_text(text)
+    ctx.text_path(text)
+    ctx.fill()
+    #ctx.show_text(text)
 
     return surface
 
