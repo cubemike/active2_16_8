@@ -3,6 +3,14 @@ import os
 import cairo
 import math
 from enum import Enum
+import gi
+gi.require_version('Pango', '1.0')
+gi.require_version('PangoCairo', '1.0')
+from gi.repository import Pango, PangoCairo
+
+import gi
+gi.require_version('PangoCairo', '1.0')
+from gi.repository import PangoCairo
 
 class Hand(Enum):
     CURSOR_ANGLED_BACK = 1
@@ -142,7 +150,7 @@ def saveHand(filename, time):
 def hourToTheta(hour, night=False):
 
     if night:    
-        theta = (hour)*(2*math.pi/16) - math.pi/2
+        theta = (hour)*(2*math.pi/8)
     else:
         theta = (hour-8)*(2*math.pi/16)
     return theta
@@ -279,69 +287,63 @@ def saveDial(filename, hourStart, hourStop, night):
 
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 466, 466)
     ctx = cairo.Context(surface)
-    ctx.select_font_face("ubuntu mono")
+    pangocairo_context = PangoCairo.create_context(ctx)
+    layout = PangoCairo.create_layout(ctx)
 
-    # Fill background white
-    ctx.set_source_rgba(0, 0, 0, 0)
-    ctx.paint()
+    font = Pango.FontDescription()
+    font.set_family("Ubuntu Mono Custom")
+    font.set_size(30 * Pango.SCALE)
+    layout.set_font_description(font)
 
     # Move coordinate system to center and scale
     ctx.translate(233, 233)
 
-    # Draw clock circle
-    #ctx.arc(0, 0, 232, 0, 2 * math.pi)
-    #ctx.stroke()
-
-
-    ctx.set_source_rgba(1, 1, 1, 1)
-
     for hour in range(hourStart, int(hourStop)):
         # Draw numbers
         ctx.save()
-        angle = hourToTheta(hour, night)
-        ctx.rotate(angle+math.pi)
-        ctx.set_font_size(35)
-        ctx.select_font_face("ubuntu mono", 
-        cairo.FONT_SLANT_NORMAL, 
-        cairo.FONT_WEIGHT_NORMAL)
-
-        #if night == False:
-        #    number = str(hex(int(hour-8)))[2:].upper()
-        #else:
-        #    number = str(int(hour))
 
         #number = f"{hour:02}"
         
-        # Get text dimensions for centering
-        # number = str(12 if hour == 0 else hour)
-        number_idx = (hour if hour <= 12 else hour-12)
-        strs = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'E', 'Δ']
+        number_idx = (hour if hour < 12 else hour-12)
+        #strs = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', U'0\u0305', U'1\u0305', U'2\u0305']
+        strs = [U'\ue000', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'δ', U'\u0190']
+        #strs = [U'\ue002', '1', '2', '3', '4', '5', '6', '7', '8', '9', U'\ue001', U'\u0190']
         number = strs[number_idx]
-        text_extents = ctx.text_extents(number)
-        print(number, text_extents)
+        #layout.set_text(number)
+        #text_extents = ctx.text_extents(number)
+        #print(number, text_extents)
 
 
-        text_y = 175
-        
-        # Position and rotate text
-        #ctx.move_to(- text_extents.width/2-4, -text_y + text_extents.height/2)
-        #ctx.rotate(math.pi/2)  # Rotate text to face outward
-        #ctx.show_text(number)
+        #number = str(number_idx)
+        layout.set_text(number)
+        width, height = layout.get_pixel_size()
 
-    #    x = -171*math.sin(angle)
-    #    y = 178*math.cos(angle)
-        # Position and rotate text
-        ctx.move_to( -text_extents.width/2 - text_extents.x_bearing,  -text_y + text_extents.height/2)
-        #ctx.rotate(math.pi/2)  # Rotate text to face outward
+        numbers_upright = True
+        angle = hourToTheta(hour, night)
+
+        if numbers_upright:
+            x = -174*math.sin(angle)
+            y = 174*math.cos(angle)
+        else:
+            x = 0
+            y = -176
+            ctx.rotate(angle+math.pi)
+
+        x = x-width/2
+        y = y-height/2-1
+
+
+        print(f'x:{x} y:{y}')
+
+        ctx.move_to(x, y)
         ctx.set_source_rgba(0, 0, 0, 1)
-        ctx.text_path(number)
         ctx.set_line_width(3)
+        PangoCairo.layout_path(ctx, layout)
         ctx.stroke()
 
-        ctx.set_line_width(3)
         ctx.set_source_rgba(1, 1, 1, 1)
-        ctx.move_to( -text_extents.width/2 - text_extents.x_bearing,  -text_y + text_extents.height/2)
-        ctx.text_path(number)
+        ctx.move_to(x, y)
+        PangoCairo.layout_path(ctx, layout)
         ctx.fill()
 
         ctx.restore()
@@ -375,10 +377,10 @@ def saveGradient(filename):
 script_dir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(script_dir)
 
-saveDial(filename='faces/numbers_8.png', hourStart=0, hourStop=9, night=True)
+saveDial(filename='faces/numbers_8.png', hourStart=0, hourStop=8, night=True)
 saveDial(filename='faces/numbers_16.png', hourStart=8, hourStop=24, night=False)
 saveFace(filename='faces/ticks_16.png', hourStart=8, hourStop=23.9, night=False)
-saveFace(filename='faces/ticks_8.png', hourStart=0, hourStop=8.1, night=True)
+saveFace(filename='faces/ticks_8.png', hourStart=0, hourStop=8, night=True)
 # Since these start at 0 (during the night) we need to rotate by 4x the minutes
 for i in range(0, 8):
     saveHand(f'hands/hand_8_{i}.png', i/60/3)

@@ -112,7 +112,7 @@ function hourToAngle_16_8(hour)
 	let angle = {}
 
 	if (hour < 8)
-		rawAngle = (hour+(16-4))*(360/16);
+		rawAngle = (hour)*(360/8);
 	else
 		rawAngle = (hour-8)*(360/16);
 
@@ -188,21 +188,21 @@ function setFace() {
 	setMonth(month);
 	setWeekday(weekday);
 	setDay(day);
-	setWeather();
+	//setWeather();
 	//setHeartRate();
 
     if (hour < 8) {
         srcTicks = 'faces/ticks_8.png'
         srcNumbers = 'faces/numbers_8.png'
-		sunsetImg.setProperty(hmUI.prop.MORE, {
-			alpha: 0,
-		});
+		//sunsetImg.setProperty(hmUI.prop.MORE, {
+		//	alpha: 0,
+		//});
     } else {
         srcTicks = 'faces/ticks_16.png'
         srcNumbers = 'faces/numbers_16.png'
-		sunsetImg.setProperty(hmUI.prop.MORE, {
-			alpha: 0xff,
-		});
+		//sunsetImg.setProperty(hmUI.prop.MORE, {
+		//	alpha: 0xff,
+		//});
 	}
 
 	ticksImg.setProperty(hmUI.prop.MORE, {
@@ -280,16 +280,6 @@ WatchFace({
 	
 		console.log('hi')
 
-		dummyText = hmUI.createWidget(hmUI.widget.TEXT, {
-			x: 200,
-			y: 200,
-			font: "UbuntuMono-Regular.ttf",
-			text_size: 20,
-			align_h: hmUI.align.LEFT,
-			text: 'abcdefghijklmnopqrstuvwxyz0123456789-°',
-			color: 0x000000
-		});
-
 		ticksImg = hmUI.createWidget(hmUI.widget.IMG, {
 			x: 0,
 			y: 0,
@@ -299,15 +289,15 @@ WatchFace({
 			src: 'faces/ticks_8.png'
 		});
 
-		sunsetImg = hmUI.createWidget(hmUI.widget.IMG, {
-			x: 0,
-			y: 0,
-			center_x: 233,
-			center_y: 233,
-			w: 446,
-			h: 446,
-			show_level: hmUI.show_level.ONLY_NORMAL,
-		});
+		//sunsetImg = hmUI.createWidget(hmUI.widget.IMG, {
+		//	x: 0,
+		//	y: 0,
+		//	center_x: 233,
+		//	center_y: 233,
+		//	w: 446,
+		//	h: 446,
+		//	show_level: hmUI.show_level.ONLY_NORMAL,
+		//});
 
 		handImg = hmUI.createWidget(hmUI.widget.IMG, {
 			x: 0,
