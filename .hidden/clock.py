@@ -284,7 +284,7 @@ def saveSunset(filename, time):
     # Save to file
     surface.write_to_png(filename)
 
-def saveDial(filename, hourStart, hourStop, night):
+def saveDial(filename, hourStart, hourStop, night, twentyFour_hour=False):
 
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 466, 466)
     ctx = cairo.Context(surface)
@@ -293,8 +293,6 @@ def saveDial(filename, hourStart, hourStop, night):
 
     font = Pango.FontDescription()
     font.set_family("Ubuntu Mono Custom")
-    font.set_size(30 * Pango.SCALE)
-    layout.set_font_description(font)
 
     # Move coordinate system to center and scale
     ctx.translate(233, 233)
@@ -303,22 +301,35 @@ def saveDial(filename, hourStart, hourStop, night):
         # Draw numbers
         ctx.save()
 
-        #number = f"{hour:02}"
-        
-        number_idx = (hour if hour < 12 else hour-12)
-        #strs = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', U'0\u0305', U'1\u0305', U'2\u0305']
-        strs = [ U'\ue005', '1', '2', '3', '4', '5', '6', '7', '8', '9',U'\uE000', U'\u0190']
-        #strs = [U'\ue002', '1', '2', '3', '4', '5', '6', '7', '8', '9', U'\ue001', U'\u0190']
-        number = strs[number_idx]
-        #layout.set_text(number)
-        #text_extents = ctx.text_extents(number)
-        #print(number, text_extents)
+        if twentyFour_hour == False:
+            font.set_size(30 * Pango.SCALE)
+            #number = f"{hour:02}"
+            if hour == 0:
+                number_idx = 12-1
+            if hour > 12:
+                number_idx = hour-12-1
+            else:
+                number_idx = hour-1
 
+            #strs = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', U'0\u0305', U'1\u0305', U'2\u0305']
+            #strs = [ U'\ue005', '1', '2', '3', '4', '5', '6', '7', '8', '9',U'\uE000', U'\u0190']
+            strs = ['1', '2', '3', '4', '5', '6', '7', '8', '9', U'\uE000', U'\u0190', 'δ']
+            #strs = ['Δ', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'E' ]
+            number = strs[number_idx]
+            #layout.set_text(number)
+            #text_extents = ctx.text_extents(number)
+            #print(number, text_extents)
+        else:
+            if hour < 8:
+                font.set_size(30 * Pango.SCALE)
+                number = str(hour)
+            else:
+                font.set_size(25 * Pango.SCALE)
+                number = f'{hour:02}'
 
         layout.set_font_description(font)
 
 
-        #number = str(number_idx)
         layout.set_text(number)
         width, height = layout.get_pixel_size()
 
@@ -336,8 +347,11 @@ def saveDial(filename, hourStart, hourStop, night):
         x = x-width/2
         y = y-height/2-1
 
+#        if x < -180:
+#            x = x + 2
 
-        print(f'x:{x} y:{y}')
+
+        print(f'{number} x:{x} y:{y}')
 
         ctx.move_to(x, y)
         ctx.set_source_rgba(0, 0, 0, 1)
@@ -403,13 +417,9 @@ if os.path.exists(fontdir + '/' + fontname):
 else:
     os.system('cp ./*.ttf ~/.local/share/fonts/')
     os.system('fc-cache -f')
- 
-        
-
-
 
 saveDial(filename=assets_dir + 'faces/numbers_8.png', hourStart=0, hourStop=8, night=True)
-saveDial(filename=assets_dir + 'faces/numbers_16.png', hourStart=8, hourStop=24, night=False)
+saveDial(filename=assets_dir + 'faces/numbers_16.png', hourStart=8, hourStop=24, night=False, twentyFour_hour=False)
 saveFace(filename=assets_dir + 'faces/ticks_16.png', hourStart=8, hourStop=23.9, night=False)
 saveFace(filename=assets_dir + 'faces/ticks_8.png', hourStart=0, hourStop=8, night=True)
 # Since these start at 0 (during the night) we need to rotate by 4x the minutes

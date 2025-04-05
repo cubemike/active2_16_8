@@ -56,7 +56,7 @@ function setMonth(month) {
 }
 
 function setDay(day) {
-	dayTextImg.setProperty(hmUI.prop.TEXT, `${day}`);
+	dayTextImg.setProperty(hmUI.prop.TEXT, `${(day<10?"0":"") + day}`);
 }
 
 function setWeekday(weekday) {
@@ -440,6 +440,7 @@ WatchFace({
 			x: 0 + weather_offset_x,
 			y: 0 +  weather_offset_y,
 			font_array: getDigitFontArray(25),
+            negative_image: 'digit_25/neg.png',
 			type: hmUI.data_type.WEATHER_HIGH
 		});
 
@@ -459,6 +460,7 @@ WatchFace({
 			x: 0 + weather_offset_x,
 			y: 22 +  weather_offset_y,
 			font_array: getDigitFontArray(25),
+            negative_image: 'digit_25/neg.png',
 			type: hmUI.data_type.WEATHER_LOW
 		});
 
@@ -477,7 +479,8 @@ WatchFace({
 			x: 35 + weather_offset_x,
 			y: -2 +  weather_offset_y,
 			font_array: getDigitFontArray(50),
-			unit_en: 'digit_50/°.png',
+			unit_en: 'digit_50/deg.png',
+            negative_image: 'digit_50/neg.png',
 			type: hmUI.data_type.WEATHER_CURRENT
 		});
 

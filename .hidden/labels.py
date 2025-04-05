@@ -104,37 +104,40 @@ month_colors = [red, green, red, green, red, red,
 days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', ',']
 days = [d.lower() for d in days]
 day_colors = [blue, white, white, white, white, white, red, white]
-numbers = list('0123456789-.')
-numbers.append('°')
-digits = list('0123456789-.')
+numbers_ = list('0123456789')
+numbers = numbers_ + list('.-°')
+numbers_names = numbers_ + ['dot', 'neg', 'deg']
 
 text_height = 50
 digit_height = 25
-font = 'ubuntu mono'
+font = 'ubuntu mono custom'
 
 all_sets = [months, days, numbers]
 dimensions = find_max_dimensions_and_offsets(all_sets, text_height, font)
 month_dims, day_dims, number_dims = dimensions
 print(dimensions)
 
-digit_sets = [digits]
+digit_sets = [numbers]
 dimensions_digits = find_max_dimensions_and_offsets(digit_sets, digit_height, font)
 digit_dims, = dimensions_digits
 print(digit_dims)
 
+assets_dir = '../assets/common'
+print(f"{assets_dir}/months/")
+print(os.getcwd())
 
 for idx, text in enumerate(months):
     surface = create_text_image(text, month_colors[idx], *month_dims, text_height, font)
-    surface.write_to_png(f"months/{idx}.png")
+    surface.write_to_png(f"{assets_dir}/months/{idx}.png")
 
 for idx, text in enumerate(days):
     surface = create_text_image(text, day_colors[idx], *day_dims, text_height, font)
-    surface.write_to_png(f"weekdays/{idx}.png")
+    surface.write_to_png(f"{assets_dir}/weekdays/{idx}.png")
 
 for idx, text in enumerate(numbers):
     surface = create_text_image(text, "FFFFFF", *number_dims, text_height, font)
-    surface.write_to_png(f"digit_50/{text}.png")
+    surface.write_to_png(f"{assets_dir}/digit_50/{numbers_names[idx]}.png")
 
-for idx, text in enumerate(digits):
+for idx, text in enumerate(numbers):
     surface = create_text_image(text, "FFFFFF", *digit_dims, digit_height, font)
-    surface.write_to_png(f"digit_25/{text}.png")
+    surface.write_to_png(f"{assets_dir}/digit_25/{numbers_names[idx]}.png")
