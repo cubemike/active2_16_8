@@ -1,4 +1,5 @@
 import os
+import hashlib
 
 import cairo
 import math
@@ -306,12 +307,15 @@ def saveDial(filename, hourStart, hourStop, night):
         
         number_idx = (hour if hour < 12 else hour-12)
         #strs = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', U'0\u0305', U'1\u0305', U'2\u0305']
-        strs = [U'\ue000', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'δ', U'\u0190']
+        strs = [ U'\ue005', '1', '2', '3', '4', '5', '6', '7', '8', '9',U'\uE000', U'\u0190']
         #strs = [U'\ue002', '1', '2', '3', '4', '5', '6', '7', '8', '9', U'\ue001', U'\u0190']
         number = strs[number_idx]
         #layout.set_text(number)
         #text_extents = ctx.text_extents(number)
         #print(number, text_extents)
+
+
+        layout.set_font_description(font)
 
 
         #number = str(number_idx)
@@ -377,15 +381,41 @@ def saveGradient(filename):
 script_dir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(script_dir)
 
-saveDial(filename='faces/numbers_8.png', hourStart=0, hourStop=8, night=True)
-saveDial(filename='faces/numbers_16.png', hourStart=8, hourStop=24, night=False)
-saveFace(filename='faces/ticks_16.png', hourStart=8, hourStop=23.9, night=False)
-saveFace(filename='faces/ticks_8.png', hourStart=0, hourStop=8, night=True)
+assets_dir = '../assets/common/'
+homedir = os.path.expanduser('~')
+fontdir = homedir + '/.local/share/fonts'
+fontname = 'UbuntuMono-Regular-Custom.ttf'
+
+if os.path.exists(fontdir + '/' + fontname):
+    with open(fontname, 'rb') as file:
+        data = file.read()
+        md5_current = hashlib.md5(data).hexdigest()
+        print(md5_current)
+
+    with open(fontdir + '/' + fontname, 'rb') as file:
+        data = file.read()
+        md5_installed = hashlib.md5(data).hexdigest()
+        print(md5_installed)
+
+    if md5_current != md5_installed:
+        os.system('cp ./*.ttf ~/.local/share/fonts/')
+        os.system('fc-cache -f')
+else:
+    os.system('cp ./*.ttf ~/.local/share/fonts/')
+    os.system('fc-cache -f')
+ 
+        
+
+
+
+saveDial(filename=assets_dir + 'faces/numbers_8.png', hourStart=0, hourStop=8, night=True)
+saveDial(filename=assets_dir + 'faces/numbers_16.png', hourStart=8, hourStop=24, night=False)
+saveFace(filename=assets_dir + 'faces/ticks_16.png', hourStart=8, hourStop=23.9, night=False)
+saveFace(filename=assets_dir + 'faces/ticks_8.png', hourStart=0, hourStop=8, night=True)
 # Since these start at 0 (during the night) we need to rotate by 4x the minutes
 for i in range(0, 8):
-    saveHand(f'hands/hand_8_{i}.png', i/60/3)
+    saveHand(f'{assets_dir}hands/hand_8_{i}.png', i/60/3)
 
-for i in range(0, 8):
-    saveSunset(f'hands/sunset_8_{i}.png', i/60/3)
+# for i in range(0, 8):
+#     saveSunset(f'{assets_dir}hands/sunset_8_{i}.png', i/60/3)
 
-saveGradient(filename='gradient.png')

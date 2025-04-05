@@ -2,6 +2,7 @@
 
 import cairo
 import math
+import os
 
 def get_required_font_size(ctx, text, desired_height, test_size=48):
     ctx.set_font_size(test_size)
@@ -74,6 +75,9 @@ def create_text_image(text, color, width, height, x_offset, y_offset, desired_te
 
     return surface
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
+os.chdir(script_dir)
+
 #month_green = "25e310"
 #month_red = "e31010"
 #month_orange = "e37d10"
@@ -97,9 +101,9 @@ months = [m.lower() for m in months]
 month_colors = [red, green, red, green, red, red,
                 red, green, yellow, orange, pink, white]
 
-days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', ',']
 days = [d.lower() for d in days]
-day_colors = [blue, white, white, white, white, white, red]
+day_colors = [blue, white, white, white, white, white, red, white]
 numbers = list('0123456789-.')
 numbers.append('°')
 digits = list('0123456789-.')

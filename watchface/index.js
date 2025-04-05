@@ -17,11 +17,14 @@ let weatherCurrentTextImg = null;
 let weatherSensor = null;
 
 let isSimulator = false;
+let isInTestMode = false;
+let lastUpdateHour = -1;
 
 const weather_offset_x = 165;
 const weather_offset_y = 300;
 
 const date_offset_x = 112;
+const date_offset_y = 207;
 
 const colors = {red: 	0xff5555,
 				orange: 0xffb144,
@@ -165,12 +168,13 @@ function setSunset(hour)
 }
 
 function setFace() {
+    //if (typeof lastUpdateHour == 'undefined') {
+    //    lastUpdateHour = -1
+    //    console.log(`lastUpdateHour: ${lastUpdateHour}`)
+    //}
 	let date = new Date();
 
 	hour = date.getHours()+date.getMinutes()/60;
-	month = date.getMonth();
-	weekday = date.getDay();
-	day = date.getDate();
 	//console.log("\nhour:    " + hour,
 	//		    "\nmonth:   " + month,
 	//			"\nweekday: " + weekday,
@@ -185,32 +189,47 @@ function setFace() {
 	}
 
 	setTime(hour);
-	setMonth(month);
-	setWeekday(weekday);
-	setDay(day);
+
+    if (isInTestMode || (lastUpdateHour == -1) || (lastUpdateHour > hour)) {
+        month = date.getMonth();
+        weekday = date.getDay();
+        day = date.getDate();
+
+        setMonth(month);
+        setWeekday(weekday);
+        setDay(day);
+    }
 	//setWeather();
 	//setHeartRate();
 
-    if (hour < 8) {
-        srcTicks = 'faces/ticks_8.png'
-        srcNumbers = 'faces/numbers_8.png'
-		//sunsetImg.setProperty(hmUI.prop.MORE, {
-		//	alpha: 0,
-		//});
-    } else {
-        srcTicks = 'faces/ticks_16.png'
-        srcNumbers = 'faces/numbers_16.png'
-		//sunsetImg.setProperty(hmUI.prop.MORE, {
-		//	alpha: 0xff,
-		//});
-	}
+    if (isInTestMode || (lastUpdateHour == -1) || (lastUpdateHour > hour) || (hour >= 8 && lastUpdateHour < 8)) {
+        if (hour < 8) {
+            srcTicks = 'faces/ticks_8.png'
+            srcNumbers = 'faces/numbers_8.png'
+            //sunsetImg.setProperty(hmUI.prop.MORE, {
+            //	alpha: 0,
+            //});
+        } else {
+            srcTicks = 'faces/ticks_16.png'
+            srcNumbers = 'faces/numbers_16.png'
+            //sunsetImg.setProperty(hmUI.prop.MORE, {
+            //	alpha: 0xff,
+            //});
+        }
 
-	ticksImg.setProperty(hmUI.prop.MORE, {
-        src: srcTicks
-    });
-	numbersImg.setProperty(hmUI.prop.MORE, {
-        src: srcNumbers
-    });
+        ticksImg.setProperty(hmUI.prop.MORE, {
+            src: srcTicks
+        });
+        numbersImg.setProperty(hmUI.prop.MORE, {
+            src: srcNumbers
+        });
+    }
+
+    lastUpdateHour = hour;
+    if (isInTestMode) {
+        isInTestMode = false;
+        console.log('Cleaned up after test mode')
+    }
 }
 
 {
@@ -220,6 +239,8 @@ function setFace() {
 	let day = 1
 
 	function testFace() {
+
+        isInTestMode = true
 		
 		//hour = (hour+0.25)%24
 		hour += 1
@@ -251,11 +272,11 @@ function setFace() {
 		if (hour < 8) {
 			srcTicks = 'faces/ticks_8.png'
 			srcNumbers = 'faces/numbers_8.png'
-			sunset_alpha = 0
+			//sunset_alpha = 0
 		} else {
 			srcTicks = 'faces/ticks_16.png'
 			srcNumbers = 'faces/numbers_16.png'
-			sunset_alpha = 0xff
+			//sunset_alpha = 0xff
 		}
 
 		ticksImg.setProperty(hmUI.prop.MORE, {
@@ -264,9 +285,9 @@ function setFace() {
 		numbersImg.setProperty(hmUI.prop.MORE, {
 			src: srcNumbers
 		});
-		sunsetImg.setProperty(hmUI.prop.MORE, {
-			alpha: sunset_alpha,
-		});
+		//sunsetImg.setProperty(hmUI.prop.MORE, {
+		//	alpha: sunset_alpha,
+		//});
 	}
 }
 
@@ -360,18 +381,14 @@ WatchFace({
 
 		weekdayTextImg = hmUI.createWidget(hmUI.widget.IMG, {
 			x: date_offset_x,
-			y: 207,
+			y: date_offset_y,
 		});
 
-		commaText = hmUI.createWidget(hmUI.widget.TEXT, {
+		commaText = hmUI.createWidget(hmUI.widget.IMG, {
+            src: 'weekdays/7.png',
 			x: date_offset_x+70,
-			y: 207,
+			y: date_offset_y,
 			w: 100,
-			color: 0xffffff,
-			font: "UbuntuMono-Regular.ttf",
-			text_size: 50,
-			align_h: hmUI.align.LEFT,
-			text: ','
 		});
 
 		//monthText = hmUI.createWidget(hmUI.widget.TEXT, {
@@ -386,7 +403,7 @@ WatchFace({
 
 		monthText = hmUI.createWidget(hmUI.widget.IMG, {
 			x: date_offset_x + 105,
-			y: 207,
+			y: date_offset_y,
 		});
 
 		//dayText = hmUI.createWidget(hmUI.widget.TEXT, {
@@ -402,7 +419,7 @@ WatchFace({
 
 		dayTextImg = hmUI.createWidget(hmUI.widget.TEXT_IMG, {
 			x: date_offset_x + 195,
-			y: 207,
+			y: date_offset_y,
 			font_array: getDigitFontArray(50),
 		});
 
@@ -495,7 +512,7 @@ WatchFace({
 		});
 		
 		const widgetDelegate = hmUI.createWidget(hmUI.widget.WIDGET_DELEGATE, {
-			resume_call: setFace
+			resume_call: setFace,
 		});
 
 		weatherSensor = hmSensor.createSensor(hmSensor.id.WEATHER);
