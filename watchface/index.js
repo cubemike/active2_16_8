@@ -1,6 +1,7 @@
 ﻿//import hmUI from '@zos/hmUI'
 //import * as router from '@zos/router'
 //import * as hmUI from '@zos/ui'
+import TestDate from './TestDate.js'
 
 let handImg = '';
 let ticksImg = null;
@@ -104,56 +105,49 @@ function setTime(hour)
     });
 }
 
-let testHour_setFace = 23
-let testMonth_setFace = 0
-let testWeekday_setFace = 0
-let testDay_setFace = 1
+
+
+let testDate = new TestDate(23, 0, 1, 0);
 let lastUpdateHour = -1;
-let isInTestMode = false;
 function setFace(minutes_increment) {
 
     console.log("increment: " + minutes_increment)
 
-    let hour = 0;
-    let month = 0;
-    let weekday = 0;
-    let day = 0;
-    let date = 0;
+    let hour, month, weekday, day, date;
+    let testMode = false
 
-    if (isSimulator && (typeof minutes_increment === 'number')) {
-        hour = testHour_setFace = (testHour_setFace + minutes_increment/60)%24
-        console.log("testHour_setFace: " + testHour_setFace)
-        month = testMonth_setFace  = (testMonth_setFace + 1) % 12
-        weekday = testWeekday_setFace = (testWeekday_setFace + 1) % 7
-        day = testDay_setFace = testDay_setFace % 31 + 1
-        isInTestMode = true
+    if (typeof minutes_increment === 'number') {
+        testMode = true
+    }
+
+    if (testMode) {
+        date = testDate;
+        testDate.increment(minutes_increment)
     } else {
         date = new Date();
-        month = date.getMonth();
-        weekday = date.getDay();
-        day = date.getDate();
-        hour = date.getHours()+date.getMinutes()/60;
     }
+
+    month = date.getMonth();
+    weekday = date.getDay();
+    day = date.getDate();
+    hour = date.getHours()+date.getMinutes()/60;
+
+    console.log('' + month + ' ' + day + ' ' + weekday)
 
     setTime(hour);
 
-    if (isInTestMode || (lastUpdateHour == -1) || (lastUpdateHour > hour)) {
+    if (testMode || (lastUpdateHour == -1) || (lastUpdateHour > hour)) {
         setMonth(month);
         setWeekday(weekday);
         setDay(day);
     }
 
     console.log(`lastUpdateHour: ${lastUpdateHour} hour: ${hour}`)
-    if (isInTestMode || (lastUpdateHour == -1) || (lastUpdateHour > hour) || (hour >= 8 && lastUpdateHour < 8)) {
+    if (testMode || (lastUpdateHour == -1) || (lastUpdateHour > hour) || (hour >= 8 && lastUpdateHour < 8)) {
         setIndicators(hour)
     }
 
     lastUpdateHour = hour;
-
-    if (isInTestMode) {
-        isInTestMode = false;
-        console.log('Cleaned up after test mode')
-    }
 }
 
 function getHourMode() {
