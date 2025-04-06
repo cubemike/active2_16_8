@@ -1,6 +1,6 @@
 ﻿//import hmUI from '@zos/hmUI'
 //import * as router from '@zos/router'
-//import * as hmUI from '@zos/ui'
+import * as hmUI from '@zos/ui'
 
 let handImg = '';
 let ticksImg = null;
@@ -13,12 +13,14 @@ let weatherImg = null;
 let weatherLowTextImg = null;
 let weatherHighTextImg = null;
 let weatherCurrentTextImg = null;
+let editBg = ''
 
 let weatherSensor = null;
 
 let isSimulator = false;
 let isInTestMode = false;
 let lastUpdateHour = -1;
+let hour_mode = '12hr'
 
 const weather_offset_x = 165;
 const weather_offset_y = 300;
@@ -203,26 +205,7 @@ function setFace() {
 	//setHeartRate();
 
     if (isInTestMode || (lastUpdateHour == -1) || (lastUpdateHour > hour) || (hour >= 8 && lastUpdateHour < 8)) {
-        if (hour < 8) {
-            srcTicks = 'faces/ticks_8.png'
-            srcNumbers = 'faces/numbers_8.png'
-            //sunsetImg.setProperty(hmUI.prop.MORE, {
-            //	alpha: 0,
-            //});
-        } else {
-            srcTicks = 'faces/ticks_16.png'
-            srcNumbers = 'faces/numbers_16.png'
-            //sunsetImg.setProperty(hmUI.prop.MORE, {
-            //	alpha: 0xff,
-            //});
-        }
-
-        ticksImg.setProperty(hmUI.prop.MORE, {
-            src: srcTicks
-        });
-        numbersImg.setProperty(hmUI.prop.MORE, {
-            src: srcNumbers
-        });
+		setIndicators()
     }
 
     lastUpdateHour = hour;
@@ -232,24 +215,86 @@ function setFace() {
     }
 }
 
-{
-	let hour = 8
-	let month = 0
-	let weekday = 0
-	let day = 1
+function toggle_hour_mode() {
+	if (hour_mode === '12hr')
+		hour_mode = '24hr';
+	else
+		hour_mode = '12hr'
+
+	setIndicators()
+}
+
+function getHourMode() {
+	currentType = editBg.getProperty(hmUI.prop.CURRENT_TYPE)
+	console.log('Current type:' + editBg.getProperty(hmUI.prop.CURRENT_TYPE))
+
+	switch (currentType) {
+		case 1:
+			hour_mode = '12hr'
+			break;
+		case 2:
+			hour_mode =  '24hr'
+			break;
+	}
+
+	console.log('hour_mode: ' + hour_mode)
+
+	return hour_mode
+
+}
+
+function setIndicators(hour) {
+	
+	if (typeof hour === 'undefined') {
+		date = new Date()
+		hour = date.getHours() + date.getMinutes/60
+	}
+
+	if (hour < 8) {
+		srcTicks = 'faces/ticks_night.png'
+		srcNumbers = `faces/numbers_${getHourMode()}_night.png`
+		//sunsetImg.setProperty(hmUI.prop.MORE, {
+		//	alpha: 0,
+		//});
+	} else {
+		srcTicks = 'faces/ticks_day.png'
+		srcNumbers = `faces/numbers_${getHourMode()}_day.png`
+		//sunsetImg.setProperty(hmUI.prop.MORE, {
+		//	alpha: 0xff,
+		//});
+	}
+
+	console.log(srcTicks)
+	console.log(srcNumbers)
+
+	ticksImg.setProperty(hmUI.prop.MORE, {
+		src: srcTicks
+	});
+	numbersImg.setProperty(hmUI.prop.MORE, {
+		src: srcNumbers
+	});
+}
+
 
 	function testFace() {
+
+		day = 1
+		weekday = 0
+		month = 0
+		
+		if (typeof testhour === 'undefined')
+			testhour = 20
 
         isInTestMode = true
 		
 		//hour = (hour+0.25)%24
-		hour += 1
+		testhour += 1
 		//if (hour > 13 && hour < 19)
 		//	hour = 19
 		//else if (hour > 21)
 		//	hour = 11
-		if (hour == 24)
-			hour = 0
+		if (testhour >= 24)
+			testhour = 0
 
 		month = (month+1)%12
 		//day = day%31+1
@@ -257,39 +302,23 @@ function setFace() {
 		if (day > 31) day = 1
 		weekday = (weekday+1)%7
 
-		console.log("\nhour:    " + hour,
+		console.log("\nhour:    " + testhour,
 					"\nmonth:   " + month,
 					"\nweekday: " + weekday,
 					"\nday:     " + day +
 					"\n");
 
-		setTime(hour);
+		setTime(testhour);
 		setMonth(month);
 		setWeekday(weekday);
 		setDay(day);
 		//setWeather();
 
-		if (hour < 8) {
-			srcTicks = 'faces/ticks_8.png'
-			srcNumbers = 'faces/numbers_8.png'
-			//sunset_alpha = 0
-		} else {
-			srcTicks = 'faces/ticks_16.png'
-			srcNumbers = 'faces/numbers_16.png'
-			//sunset_alpha = 0xff
-		}
-
-		ticksImg.setProperty(hmUI.prop.MORE, {
-			src: srcTicks
-		});
-		numbersImg.setProperty(hmUI.prop.MORE, {
-			src: srcNumbers
-		});
+		setIndicators(testhour);
 		//sunsetImg.setProperty(hmUI.prop.MORE, {
 		//	alpha: sunset_alpha,
 		//});
 	}
-}
 
 function weatherButton() {
 	console.log('weather pressed')
@@ -301,13 +330,42 @@ WatchFace({
 	
 		console.log('hi')
 
+		let BGROOT = 'faces/'
+
+		editBg = hmUI.createWidget(hmUI.widget.WATCHFACE_EDIT_BG, {
+		  edit_id: 103,
+		  x: 0,
+		  y: 0,
+		  bg_config: [
+			{ id: 1, preview: BGROOT + 'numbers_12hr_day.png', path: BGROOT + 'empty.png' },
+			{ id: 2, preview: BGROOT + 'numbers_24hr_day.png', path: BGROOT + 'empty.png' },
+		  ],
+		  count: 2,
+		  default_id: 1,
+		  fg: BGROOT + 'ticks_day.png',
+		  tips_x: 466/2-130/2-5,
+		  tips_y: 428,
+		  tips_bg: 'tips_bg.png'
+		})
+
 		ticksImg = hmUI.createWidget(hmUI.widget.IMG, {
 			x: 0,
 			y: 0,
 			w: 466,
 			h: 466,
 			show_level: hmUI.show_level.ONLY_NORMAL,
-			src: 'faces/ticks_8.png'
+			src: 'faces/ticks_day.png'
+		});
+
+		circleImg = hmUI.createWidget(hmUI.widget.IMG, {
+			x: 0,
+			y: 0,
+			center_x: 233,
+			center_y: 233,
+			w: 446,
+			h: 446,
+			show_level: hmUI.show_level.ONLY_NORMAL,
+			src: 'hands/hand_circle.png'
 		});
 
 		//sunsetImg = hmUI.createWidget(hmUI.widget.IMG, {
@@ -336,13 +394,14 @@ WatchFace({
 		//	src: 'gradient.png'
 		//});
 
+
 		numbersImg = hmUI.createWidget(hmUI.widget.IMG, {
 			x: 0,
 			y: 0,
 			w: 466,
 			h: 466,
 			show_level: hmUI.show_level.ONLY_NORMAL,
-			src: 'faces/numbers_8.png'
+			src: `faces/numbers_${hour_mode}_day.png`
 		});
 
 
@@ -511,22 +570,28 @@ WatchFace({
 			h: 100,
 			normal_src: 'weatherButton.png',
 			press_src: 'weatherButton.png',
-			click_func: testFace
+			click_func: testFace,
+			longpress_func: toggle_hour_mode
 		});
+
+
+		//console.log('Current type:' + editBg.getProperty(hmUI.prop.CURRENT_TYPE))
+		//editBg.setProperty(hmUI.prop.PATH, 'faces/numbers_24hr_night.png')
+		console.log('Current type:' + editBg.getProperty(hmUI.prop.CURRENT_TYPE))
 		
 		const widgetDelegate = hmUI.createWidget(hmUI.widget.WIDGET_DELEGATE, {
 			resume_call: setFace,
 		});
 
-		weatherSensor = hmSensor.createSensor(hmSensor.id.WEATHER);
+		//weatherSensor = hmSensor.createSensor(hmSensor.id.WEATHER);
 
 		//heartSensor = hmSensor.createSensor(hmSensor.id.HEART);
 
 		//timer1 = timer.createTimer(1000, 250, testFace);
 		
-		batterySensor = hmSensor.createSensor(hmSensor.id.BATTERY)
-		if (batterySensor.current == 0)
-			isSimulator = true
+		//batterySensor = hmSensor.createSensor(hmSensor.id.BATTERY)
+		//if (batterySensor.current == 0)
+		//	isSimulator = true
 
 		console.log('done')
     },

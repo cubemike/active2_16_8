@@ -18,6 +18,7 @@ class Hand(Enum):
     CURSOR_CURVED_BACK = 2
     RETICLE = 3
     CURSOR_FLOATING = 4
+    CIRCLE = 5
 
 def drawHand(ctx, hand):
     match hand:
@@ -110,19 +111,20 @@ def drawHand(ctx, hand):
             ctx.stroke_preserve()
             ctx.fill()
             #ctx.stroke()
-            
+
+        case Hand.CIRCLE:
+            back_y         = 145
+            ctx.set_source_rgb(237/255, 115/255, 46/255)
             ctx.set_line_width(7)
             ctx.arc(0, 0, back_y, 0, 2*math.pi)
             ctx.stroke()
 
-            #ctx.set_line_width(7)
-            #ctx.set_source_rgba(0, 0, 0, 1)
-            #ctx.arc(0, 0, back_y+6, 0, 2*math.pi)
-            #ctx.stroke()
-            
-            
+            ctx.set_line_width(7)
+            ctx.set_source_rgba(0, 0, 0, 1)
+            ctx.arc(0, 0, back_y+6, 0, 2*math.pi)
+            ctx.stroke()
 
-def saveHand(filename, time):
+def saveHand(filename, time, hand):
     # Create surface and context
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 466, 466)
     ctx = cairo.Context(surface)
@@ -141,7 +143,7 @@ def saveHand(filename, time):
 
 
     #drawHand(ctx, Hand.CURSOR_CURVED_BACK)
-    drawHand(ctx, Hand.CURSOR_FLOATING)
+    drawHand(ctx, hand)
 
     ctx.restore()
 
@@ -284,7 +286,7 @@ def saveSunset(filename, time):
     # Save to file
     surface.write_to_png(filename)
 
-def saveDial(filename, hourStart, hourStop, night, twentyFour_hour=False):
+def saveDial(filename, hourStart, hourStop, night, hr24=False):
 
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 466, 466)
     ctx = cairo.Context(surface)
@@ -301,7 +303,7 @@ def saveDial(filename, hourStart, hourStop, night, twentyFour_hour=False):
         # Draw numbers
         ctx.save()
 
-        if twentyFour_hour == False:
+        if hr24 == False:
             font.set_size(30 * Pango.SCALE)
             #number = f"{hour:02}"
             if hour == 0:
@@ -368,8 +370,8 @@ def saveDial(filename, hourStart, hourStop, night, twentyFour_hour=False):
 
     surface.write_to_png(filename)
 
-def saveGradient(filename):
-    
+def saveEmpty(filename):
+
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 466, 466)
     ctx = cairo.Context(surface)
 
@@ -379,16 +381,31 @@ def saveGradient(filename):
     # Move coordinate system to center and scale
     ctx.translate(233, 233)
 
-    gradient = cairo.RadialGradient(0, 0, 120, 0, 0, 150)
-    gradient.add_color_stop_rgba(0, 0, 0, 0, 0.1)
-    #gradient.add_color_stop_rgba(, 0, 0, 0, 0.1)
-    gradient.add_color_stop_rgba(1, 0, 0, 0, 0)
 
-    ctx.set_source(gradient)
+    surface.write_to_png(filename)
 
-    ctx.arc(0, 0, 200, 0, 2*math.pi)
+def saveTipsBg(filename):
 
+    w = 130
+    h = 26
+    margin = 5
+
+
+    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, w+2*margin, h+2*margin)
+    ctx = cairo.Context(surface)
+
+    ctx.set_source_rgba(0, 0, 0, 0)
+    ctx.paint()
+
+    ctx.set_source_rgb(237/255, 115/255, 46/255)
+    ctx.arc(h/2+margin, h/2+margin, h/2, math.pi/2, 3*math.pi/2)
+    ctx.line_to(w-h/2, margin)
+    ctx.arc(margin+w-h/2, h/2+margin, h/2, -math.pi/2, math.pi/2)
+    ctx.line_to(h/2+margin, h+margin)
     ctx.fill()
+
+
+
 
     surface.write_to_png(filename)
 
@@ -418,13 +435,18 @@ else:
     os.system('cp ./*.ttf ~/.local/share/fonts/')
     os.system('fc-cache -f')
 
-saveDial(filename=assets_dir + 'faces/numbers_8.png', hourStart=0, hourStop=8, night=True)
-saveDial(filename=assets_dir + 'faces/numbers_16.png', hourStart=8, hourStop=24, night=False, twentyFour_hour=False)
-saveFace(filename=assets_dir + 'faces/ticks_16.png', hourStart=8, hourStop=23.9, night=False)
-saveFace(filename=assets_dir + 'faces/ticks_8.png', hourStart=0, hourStop=8, night=True)
+saveDial(filename=assets_dir + 'faces/numbers_12hr_night.png', hourStart=0, hourStop=8, night=True, hr24=False)
+saveDial(filename=assets_dir + 'faces/numbers_12hr_day.png', hourStart=8, hourStop=24, night=False, hr24=False)
+saveDial(filename=assets_dir + 'faces/numbers_24hr_night.png', hourStart=0, hourStop=8, night=True, hr24=True)
+saveDial(filename=assets_dir + 'faces/numbers_24hr_day.png', hourStart=8, hourStop=24, night=False, hr24=True)
+saveFace(filename=assets_dir + 'faces/ticks_day.png', hourStart=8, hourStop=23.9, night=False)
+saveFace(filename=assets_dir + 'faces/ticks_night.png', hourStart=0, hourStop=8, night=True)
+saveEmpty(filename=assets_dir + 'empty.png')
+saveTipsBg(filename=assets_dir + 'tips_bg.png')
 # Since these start at 0 (during the night) we need to rotate by 4x the minutes
+saveHand(f'{assets_dir}hands/hand_circle.png', 0, Hand.CIRCLE)
 for i in range(0, 8):
-    saveHand(f'{assets_dir}hands/hand_8_{i}.png', i/60/3)
+    saveHand(f'{assets_dir}hands/hand_8_{i}.png', i/60/3, Hand.CURSOR_FLOATING)
 
 # for i in range(0, 8):
 #     saveSunset(f'{assets_dir}hands/sunset_8_{i}.png', i/60/3)
