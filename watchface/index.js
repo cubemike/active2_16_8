@@ -2,6 +2,7 @@
 //import * as router from '@zos/router'
 //import * as hmUI from '@zos/ui'
 import TestDate from './TestDate.js'
+import Time from './Time.js'
 
 let handImg = '';
 let ticksImg = null;
@@ -55,60 +56,38 @@ function getWeatherImageArray() {
     return array
 }
 
-function log(obj) {
-    console.log(JSON.stringify(obj, null, 4), '\n');
-}
-
-function hourToAngle_16_8(hour)
+function timeToAngle(time)
 {
-    function fpEqual(a, b) {
-        if (Math.abs(a-b) < 0.001)
-            return true
-        else
-            return false
-    }
+    let angle;
 
-    let angle = {}
-
-    if (hour < 8)
-        rawAngle = (hour)*(360/8);
+    if (time < 8*60)
+        angle = (time*6/8);
     else
-        rawAngle = (hour-8)*(360/16);
+        angle = (time-8*60)*6/16;
 
-    rawAngle = rawAngle%360
-
-    angle.deg = Math.floor(rawAngle)
-    angle.mdeg = 1000*(rawAngle%1)
-
-    if (fpEqual(1000, angle.mdeg)) {
-        angle.mdeg = 0
-        angle.deg++
-    }
-    angle.mdeg = Math.round(angle.mdeg)
+    angle = Math.round(angle*1000)/1000
+    console.log(time, angle.toFixed(3), 'degrees')
 
     return angle
 }
 
-function setTime(hour)
+function setTime(time)
 {
-    src = 'hands/hand_8_0.png';
+    let src = 'hands/hand_8_0.png';
 
-    angle = hourToAngle_16_8(hour);
+    let angle = timeToAngle(time);
+    let eighths = Math.round((angle % 1)/0.125)
 
-    fracIdx = Math.round(angle.mdeg/(1000/8))
-
-    src = 'hands/hand_8_' + fracIdx + '.png'
+    src = 'hands/hand_8_' + eighths + '.png'
 
     handImg.setProperty(hmUI.prop.MORE, {
-        angle: angle.deg,
+        angle: Math.floor(angle),
         src: src
     });
 }
 
-
-
-let testDate = new TestDate(23, 0, 1, 0);
-let lastUpdateHour = -1;
+let testDate = new TestDate(new Time(16, 0), 0, 0, 1);
+let lastUpdateTime = new Time(0, -1);
 function setFace(minutes_increment) {
 
     console.log("increment: " + minutes_increment)
@@ -119,10 +98,11 @@ function setFace(minutes_increment) {
     if (typeof minutes_increment === 'number') {
         testMode = true
     }
-
     if (testMode) {
         date = testDate;
         testDate.increment(minutes_increment)
+    } else if (isSimulator) {
+        date = testDate;
     } else {
         date = new Date();
     }
@@ -130,24 +110,24 @@ function setFace(minutes_increment) {
     month = date.getMonth();
     weekday = date.getDay();
     day = date.getDate();
-    hour = date.getHours()+date.getMinutes()/60;
+    time = new Time(date.getHours(), date.getMinutes())
 
     console.log('' + month + ' ' + day + ' ' + weekday)
 
-    setTime(hour);
+    setTime(time);
 
-    if (testMode || (lastUpdateHour == -1) || (lastUpdateHour > hour)) {
+    if (testMode || (lastUpdateTime == -1) || (lastUpdateTime > time)) {
         setMonth(month);
         setWeekday(weekday);
         setDay(day);
     }
 
-    console.log(`lastUpdateHour: ${lastUpdateHour} hour: ${hour}`)
-    if (testMode || (lastUpdateHour == -1) || (lastUpdateHour > hour) || (hour >= 8 && lastUpdateHour < 8)) {
-        setIndicators(hour)
+    console.log(`lastUpdateTime: ${lastUpdateTime} time: ${time}`)
+    if (testMode || (lastUpdateTime == -1) || (lastUpdateTime > time) || (time >= 8*60 && lastUpdateHour < 8*60)) {
+        setIndicators(time)
     }
 
-    lastUpdateHour = hour;
+    lastUpdateTime = time;
 }
 
 function getHourMode() {
@@ -171,9 +151,9 @@ function getHourMode() {
 
 }
 
-function setIndicators(hour) {
+function setIndicators(time) {
 
-    if (hour < 8) {
+    if (time < 8*60) {
         srcTicks = 'faces/ticks_night.png'
         srcNumbers = `faces/numbers_${getHourMode()}_night.png`
     } else {
@@ -210,14 +190,14 @@ WatchFace({
           x: 0,
           y: 0,
           bg_config: [
-            { id: 1, preview: BGROOT + 'numbers_12hr_day.png', path: BGROOT + 'empty.png' },
-            { id: 2, preview: BGROOT + 'numbers_24hr_day.png', path: BGROOT + 'empty.png' },
+            { id: 1, preview: BGROOT + 'numbers_12hr_day_preview.png', path: BGROOT + 'empty.png' },
+            { id: 2, preview: BGROOT + 'numbers_24hr_day_preview.png', path: BGROOT + 'empty.png' },
           ],
           count: 2,
           default_id: 1,
-          fg: BGROOT + 'ticks_day.png',
+          fg: 'empty.png',
           tips_x: 466/2-130/2-5,
-          tips_y: 428,
+          tips_y: 500,
           tips_bg: 'tips_bg.png'
         })
 
@@ -298,16 +278,16 @@ WatchFace({
         });
 
         weatherHighImg = hmUI.createWidget(hmUI.widget.TEXT_IMG, {
-            x: 0 + weather_offset_x,
-            y: 0 +  weather_offset_y,
+            x: 3 + weather_offset_x,
+            y: -5 +  weather_offset_y,
             font_array: getDigitFontArray(25),
             negative_image: 'digit_25/neg.png',
             type: hmUI.data_type.WEATHER_HIGH
         });
 
         weatherLowImg = hmUI.createWidget(hmUI.widget.TEXT_IMG, {
-            x: 0 + weather_offset_x,
-            y: 22 +  weather_offset_y,
+            x: 3 + weather_offset_x,
+            y: 19 +  weather_offset_y,
             font_array: getDigitFontArray(25),
             negative_image: 'digit_25/neg.png',
             type: hmUI.data_type.WEATHER_LOW
