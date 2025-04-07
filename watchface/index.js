@@ -87,16 +87,23 @@ function setTime(time)
 }
 
 let testDate = new TestDate(new Time(16, 0), 0, 0, 1);
-let lastUpdateTime = new Time(0, -1);
+const states = {INIT:0, DAY:1, NIGHT:2}
+Object.freeze(states)
+let dialState = states.INIT;
+let testMode = false;
 function setFace(minutes_increment) {
 
     console.log("increment: " + minutes_increment)
 
     let hour, month, weekday, day, date;
-    let testMode = false
+    let enteredWithTestMode = testMode;
+    let updateDial = false;
+    let updateDate = false;
 
     if (typeof minutes_increment === 'number') {
         testMode = true
+    } else {
+        testMode = false;
     }
     if (testMode) {
         date = testDate;
@@ -112,22 +119,42 @@ function setFace(minutes_increment) {
     day = date.getDate();
     time = new Time(date.getHours(), date.getMinutes())
 
-    console.log('' + month + ' ' + day + ' ' + weekday)
-
     setTime(time);
 
-    if (testMode || (lastUpdateTime == -1) || (lastUpdateTime > time)) {
+    switch (dialState) {
+        case states.INIT:
+            updateDial = true;
+            updateDate = true;
+
+            if (time < 8*60)
+                dialState = states.NIGHT;
+            else
+                dialState = states.DAY;
+            break;
+        case states.DAY:
+            if (time < 8*60) {
+                updateDial = true;
+                updateDate = true;
+                dialState = states.NIGHT;
+            }
+            break;
+        case states.NIGHT:
+            if (time >= 8*60) {
+                updateDial = true;
+                dialState = states.DAY;
+            }
+            break;
+    }
+
+    if (updateDial) {
+        setIndicators(time)
+    }
+
+    if (testMode || enteredWithTestMode || updateDate) {
         setMonth(month);
         setWeekday(weekday);
         setDay(day);
     }
-
-    console.log(`lastUpdateTime: ${lastUpdateTime} time: ${time}`)
-    if (testMode || (lastUpdateTime == -1) || (lastUpdateTime > time) || (time >= 8*60 && lastUpdateHour < 8*60)) {
-        setIndicators(time)
-    }
-
-    lastUpdateTime = time;
 }
 
 function getHourMode() {

@@ -44,5 +44,5 @@
     }
   },
   "defaultLanguage": "en-US",
-  "debug": false
+  "debug": true
 }
