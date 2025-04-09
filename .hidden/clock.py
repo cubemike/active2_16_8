@@ -150,14 +150,14 @@ def saveHand(filename, time, hand):
     # Save to file
     surface.write_to_png(filename)
 
-def hourToTheta(hour, night=False, hours=8):
+def hourToTheta(hour, hours=8):
     if hour < 8:
         theta = (hour)*(2*math.pi/hours)
     else:
         theta = (hour-8)*(2*math.pi/hours)
     return theta
 
-def saveFace(filename='face.png', hours=8, hourStart=0, hourStop=24, clockwiseTextStart=12, clockwiseTextStop=19, night=False):
+def saveFace(filename='face.png', hours=8, hourStart=0, hourStop=24, clockwiseTextStart=12, clockwiseTextStop=19, fine=False):
     # Create surface and context
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 466, 466)
     ctx = cairo.Context(surface)
@@ -185,7 +185,7 @@ def saveFace(filename='face.png', hours=8, hourStart=0, hourStop=24, clockwiseTe
         # Save context state
         ctx.save()
 
-        angle = hourToTheta(minutes/60, night, hours)
+        angle = hourToTheta(minutes/60, hours)
 
         if False: #(hour < clockwiseTextStart or hour > clockwiseTextStop):
             ctx.rotate(angle)
@@ -207,16 +207,17 @@ def saveFace(filename='face.png', hours=8, hourStart=0, hourStop=24, clockwiseTe
             tick_width = 3
             tick_start = 215
             tick_end = 240
-        #elif minutes%5 == 0:
-        #    ctx.move_to(0, alpha*(190+31))
-        #    ctx.line_to(0, alpha*(200+33))
+        elif fine and minutes%5 == 0:
+            tick_width = 3
+            tick_start = 225
+            tick_end = 240
         #elif minutes%5 == 0:
         #    ctx.move_to(0, alpha*(196+31))
         #    ctx.line_to(0, alpha*(200+33))
 
 
 
-        if minutes%15 == 0:
+        if minutes%15 == 0 or (fine and minutes % 5 == 0):
             ctx.move_to(0, alpha*(tick_start))
             ctx.line_to(0, alpha*(tick_end))
             ctx.set_source_rgba(0, 0, 0, 1)
@@ -334,7 +335,7 @@ def saveDial(filename, hourStart, hourStop, night, hours=8, hr24=False):
         width, height = layout.get_pixel_size()
 
         numbers_upright = True
-        angle = hourToTheta(hour, night, hours)
+        angle = hourToTheta(hour, hours)
 
         if numbers_upright:
             x = -174*math.sin(angle)
@@ -458,8 +459,9 @@ saveDial(filename=assets_dir + 'faces/numbers_octal_24hr_day2.png', hours=8, hou
 saveDial(filename=assets_dir + 'faces/numbers_octal_24hr_afternoon1.png', hours=8, hourStart=16, hourStop=24, night=True, hr24=True)
 saveDial(filename=assets_dir + 'faces/numbers_octal_24hr_afternoon2.png', hours=8, hourStart=17, hourStop=25, night=True, hr24=True)
 
-saveFace(filename=assets_dir + 'faces/ticks_16.png', hours=16, hourStart=8, hourStop=23.9, night=False)
-saveFace(filename=assets_dir + 'faces/ticks_8.png', hours=8, hourStart=0, hourStop=8, night=True)
+saveFace(filename=assets_dir + 'faces/ticks_16_15.png', hours=16, hourStart=8, hourStop=23.9)
+saveFace(filename=assets_dir + 'faces/ticks_8_5.png', hours=8, hourStart=0, hourStop=8, fine=True)
+saveFace(filename=assets_dir + 'faces/ticks_8_15.png', hours=8, hourStart=0, hourStop=8)
 
 saveEmpty(filename=assets_dir + 'empty.png')
 saveTipsBg(filename=assets_dir + 'tips_bg.png')

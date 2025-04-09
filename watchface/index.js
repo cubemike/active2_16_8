@@ -36,24 +36,28 @@ const mode_map = {
             stateNext: 'night2',
             tickCount: 8,
             angleHourStart: 0,
+            tickSrc: 'faces/ticks_8_15.png',
         },
         'night2': {
             hourStart: 4*60,
             stateNext: 'day1',
             tickCount: 8,
             angleHourStart: 0,
+            tickSrc: 'faces/ticks_8_15.png',
         },
         'day1': {
             hourStart: 8*60,
             stateNext: 'day2',
             tickCount: 16,
             angleHourStart: 8*60,
+            tickSrc: 'faces/ticks_16_15.png',
         },
         'day2': {
             hourStart: 16*60,
             stateNext: 'night1',
             tickCount: 16,
             angleHourStart: 8*60,
+            tickSrc: 'faces/ticks_16_15.png',
         },
     },
     'octal': {
@@ -62,36 +66,42 @@ const mode_map = {
             stateNext: 'night2',
             tickCount: 8,
             angleHourStart: 0,
+            tickSrc: 'faces/ticks_8_15.png',
         },
         'night2': {
             hourStart: 4*60,
             stateNext: 'day1',
             tickCount: 8,
             angleHourStart: 0,
+            tickSrc: 'faces/ticks_8_15.png',
         },
         'day1': {
             hourStart: 8*60,
             stateNext: 'day2',
             tickCount: 8,
             angleHourStart: 8*60,
+            tickSrc: 'faces/ticks_8_5.png',
         },
         'day2': {
             hourStart: 12*60,
             stateNext: 'afternoon1',
             tickCount: 8,
             angleHourStart: 8*60,
+            tickSrc: 'faces/ticks_8_5.png',
         },
         'afternoon1': {
             hourStart: 16*60,
             stateNext: 'afternoon2',
             tickCount: 8,
             angleHourStart: 16*60,
+            tickSrc: 'faces/ticks_8_5.png',
         },
         'afternoon2': {
             hourStart: 20*60,
             stateNext: 'night1',
             tickCount: 8,
             angleHourStart: 16*60,
+            tickSrc: 'faces/ticks_8_5.png',
         }
     }
 }
@@ -285,8 +295,8 @@ function setIndicators(time) {
 
     console.log('dialState', dialState)
     srcNumbers = getNumbersPath(clock_mode, hour_mode, dialState);
-    console.log('hourCount:', mode_map[clock_mode][dialState].tickCount)
-    srcTicks = getTicksPath(mode_map[clock_mode][dialState].tickCount);
+    srcTicks = mode_map[clock_mode][dialState].tickSrc;
+    console.log(srcTicks)
 
     console.log(srcTicks)
     console.log(srcNumbers)
