@@ -65,7 +65,7 @@ def drawHand(ctx, hand):
             ctx.line_to(-back_x, back_y)
             ctx.stroke_preserve()
             ctx.fill()
-            
+
             #ctx.set_line_width(5)
             #ctx.stroke()
             #ctx.arc(0, 0, 145, 0, 2*math.pi)
@@ -139,7 +139,7 @@ def saveHand(filename, time, hand):
     ctx.translate(233, 233)
 
     ctx.save()
-    ctx.rotate(-math.pi+hourToTheta(time))
+    ctx.rotate(hourToTheta(time, 16))
 
 
     #drawHand(ctx, Hand.CURSOR_CURVED_BACK)
@@ -150,15 +150,14 @@ def saveHand(filename, time, hand):
     # Save to file
     surface.write_to_png(filename)
 
-def hourToTheta(hour, night=False):
-
-    if night:    
-        theta = (hour)*(2*math.pi/8)
+def hourToTheta(hour, night=False, hours=8):
+    if hour < 8:
+        theta = (hour)*(2*math.pi/hours)
     else:
-        theta = (hour-8)*(2*math.pi/16)
+        theta = (hour-8)*(2*math.pi/hours)
     return theta
 
-def saveFace(filename='face.png', hourStart=0, hourStop=24, clockwiseTextStart=12, clockwiseTextStop=19, night=False):
+def saveFace(filename='face.png', hours=8, hourStart=0, hourStop=24, clockwiseTextStart=12, clockwiseTextStop=19, night=False):
     # Create surface and context
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 466, 466)
     ctx = cairo.Context(surface)
@@ -186,7 +185,7 @@ def saveFace(filename='face.png', hourStart=0, hourStop=24, clockwiseTextStart=1
         # Save context state
         ctx.save()
 
-        angle = hourToTheta(minutes/60, night)
+        angle = hourToTheta(minutes/60, night, hours)
 
         if False: #(hour < clockwiseTextStart or hour > clockwiseTextStop):
             ctx.rotate(angle)
@@ -286,7 +285,7 @@ def saveSunset(filename, time):
     # Save to file
     surface.write_to_png(filename)
 
-def saveDial(filename, hourStart, hourStop, night, hr24=False):
+def saveDial(filename, hourStart, hourStop, night, hours=8, hr24=False):
 
     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 466, 466)
     ctx = cairo.Context(surface)
@@ -302,6 +301,9 @@ def saveDial(filename, hourStart, hourStop, night, hr24=False):
     for hour in range(hourStart, int(hourStop)):
         # Draw numbers
         ctx.save()
+
+        hour = hour % 24
+
 
         if hr24 == False:
             font.set_size(30 * Pango.SCALE)
@@ -322,12 +324,8 @@ def saveDial(filename, hourStart, hourStop, night, hr24=False):
             #text_extents = ctx.text_extents(number)
             #print(number, text_extents)
         else:
-            if hour < 8:
-                font.set_size(30 * Pango.SCALE)
-                number = str(hour)
-            else:
-                font.set_size(25 * Pango.SCALE)
-                number = f'{hour:02}'
+            font.set_size(25 * Pango.SCALE)
+            number = f'{hour:02}'
 
         layout.set_font_description(font)
 
@@ -336,7 +334,7 @@ def saveDial(filename, hourStart, hourStop, night, hr24=False):
         width, height = layout.get_pixel_size()
 
         numbers_upright = True
-        angle = hourToTheta(hour, night)
+        angle = hourToTheta(hour, night, hours)
 
         if numbers_upright:
             x = -174*math.sin(angle)
@@ -435,18 +433,40 @@ else:
     os.system('cp ./*.ttf ~/.local/share/fonts/')
     os.system('fc-cache -f')
 
-saveDial(filename=assets_dir + 'faces/numbers_12hr_night.png', hourStart=0, hourStop=8, night=True, hr24=False)
-saveDial(filename=assets_dir + 'faces/numbers_12hr_day.png', hourStart=8, hourStop=24, night=False, hr24=False)
-saveDial(filename=assets_dir + 'faces/numbers_24hr_night.png', hourStart=0, hourStop=8, night=True, hr24=True)
-saveDial(filename=assets_dir + 'faces/numbers_24hr_day.png', hourStart=8, hourStop=24, night=False, hr24=True)
-saveFace(filename=assets_dir + 'faces/ticks_day.png', hourStart=8, hourStop=23.9, night=False)
-saveFace(filename=assets_dir + 'faces/ticks_night.png', hourStart=0, hourStop=8, night=True)
+saveDial(filename=assets_dir + 'faces/numbers_hex_12hr_night1.png', hours=8, hourStart=0, hourStop=8, night=True, hr24=False)
+saveDial(filename=assets_dir + 'faces/numbers_hex_12hr_night2.png', hours=8, hourStart=1, hourStop=9, night=True, hr24=False)
+saveDial(filename=assets_dir + 'faces/numbers_hex_12hr_day1.png', hours=16, hourStart=8, hourStop=24, night=False, hr24=False)
+saveDial(filename=assets_dir + 'faces/numbers_hex_12hr_day2.png', hours=16, hourStart=9, hourStop=25, night=False, hr24=False)
+
+saveDial(filename=assets_dir + 'faces/numbers_hex_24hr_night1.png', hours=8, hourStart=0, hourStop=8, night=True, hr24=True)
+saveDial(filename=assets_dir + 'faces/numbers_hex_24hr_night2.png', hours=8, hourStart=1, hourStop=9, night=True, hr24=True)
+saveDial(filename=assets_dir + 'faces/numbers_hex_24hr_day1.png', hours=16, hourStart=8, hourStop=24, night=False, hr24=True)
+saveDial(filename=assets_dir + 'faces/numbers_hex_24hr_day2.png', hours=16, hourStart=9, hourStop=25, night=False, hr24=True)
+
+
+saveDial(filename=assets_dir + 'faces/numbers_octal_12hr_night1.png', hours=8, hourStart=0, hourStop=8, night=True, hr24=False)
+saveDial(filename=assets_dir + 'faces/numbers_octal_12hr_night2.png', hours=8, hourStart=1, hourStop=9, night=True, hr24=False)
+saveDial(filename=assets_dir + 'faces/numbers_octal_12hr_day1.png', hours=8, hourStart=8, hourStop=16, night=True, hr24=False)
+saveDial(filename=assets_dir + 'faces/numbers_octal_12hr_day2.png', hours=8, hourStart=9, hourStop=17, night=True, hr24=False)
+saveDial(filename=assets_dir + 'faces/numbers_octal_12hr_afternoon1.png', hours=8, hourStart=16, hourStop=24, night=True, hr24=False)
+saveDial(filename=assets_dir + 'faces/numbers_octal_12hr_afternoon2.png', hours=8, hourStart=17, hourStop=25, night=True, hr24=False)
+
+saveDial(filename=assets_dir + 'faces/numbers_octal_24hr_night1.png', hours=8, hourStart=0, hourStop=8, night=True, hr24=True)
+saveDial(filename=assets_dir + 'faces/numbers_octal_24hr_night2.png', hours=8, hourStart=1, hourStop=9, night=True, hr24=True)
+saveDial(filename=assets_dir + 'faces/numbers_octal_24hr_day1.png', hours=8, hourStart=8, hourStop=16, night=True, hr24=True)
+saveDial(filename=assets_dir + 'faces/numbers_octal_24hr_day2.png', hours=8, hourStart=9, hourStop=17, night=True, hr24=True)
+saveDial(filename=assets_dir + 'faces/numbers_octal_24hr_afternoon1.png', hours=8, hourStart=16, hourStop=24, night=True, hr24=True)
+saveDial(filename=assets_dir + 'faces/numbers_octal_24hr_afternoon2.png', hours=8, hourStart=17, hourStop=25, night=True, hr24=True)
+
+saveFace(filename=assets_dir + 'faces/ticks_16.png', hours=16, hourStart=8, hourStop=23.9, night=False)
+saveFace(filename=assets_dir + 'faces/ticks_8.png', hours=8, hourStart=0, hourStop=8, night=True)
+
 saveEmpty(filename=assets_dir + 'empty.png')
 saveTipsBg(filename=assets_dir + 'tips_bg.png')
 # Since these start at 0 (during the night) we need to rotate by 4x the minutes
 saveHand(f'{assets_dir}hands/hand_circle.png', 0, Hand.CIRCLE)
 for i in range(0, 8):
-    saveHand(f'{assets_dir}hands/hand_8_{i}.png', i/60/3, Hand.CURSOR_FLOATING)
+    saveHand(f'{assets_dir}hands/hand_8_{i}.png', 8+i/60/3, Hand.CURSOR_FLOATING)
 
 # for i in range(0, 8):
 #     saveSunset(f'{assets_dir}hands/sunset_8_{i}.png', i/60/3)

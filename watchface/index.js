@@ -20,7 +20,83 @@ let editBg = ''
 let weatherSensor = null;
 
 let isSimulator = false;
-let hour_mode = '12hr'
+let hour_mode = '12hr';
+
+const ClockModes = {HEX:'HEX', OCTAL:'OCTAL'};
+let clock_mode = 'octal';
+
+const states = {INIT:'INIT', DAY:'DAY', AFTERNOON: 'AFTERNOON', NIGHT:'NIGHT'}
+Object.freeze(states)
+let dialState = states.INIT;
+
+const mode_map = {
+    'hex': {
+        'night1': {
+            hourStart: 0*60,
+            stateNext: 'night2',
+            tickCount: 8,
+            angleHourStart: 0,
+        },
+        'night2': {
+            hourStart: 4*60,
+            stateNext: 'day1',
+            tickCount: 8,
+            angleHourStart: 0,
+        },
+        'day1': {
+            hourStart: 8*60,
+            stateNext: 'day2',
+            tickCount: 16,
+            angleHourStart: 8*60,
+        },
+        'day2': {
+            hourStart: 16*60,
+            stateNext: 'night1',
+            tickCount: 16,
+            angleHourStart: 8*60,
+        },
+    },
+    'octal': {
+        'night1': {
+            hourStart: 0*60,
+            stateNext: 'night2',
+            tickCount: 8,
+            angleHourStart: 0,
+        },
+        'night2': {
+            hourStart: 4*60,
+            stateNext: 'day1',
+            tickCount: 8,
+            angleHourStart: 0,
+        },
+        'day1': {
+            hourStart: 8*60,
+            stateNext: 'day2',
+            tickCount: 8,
+            angleHourStart: 8*60,
+        },
+        'day2': {
+            hourStart: 12*60,
+            stateNext: 'afternoon1',
+            tickCount: 8,
+            angleHourStart: 8*60,
+        },
+        'afternoon1': {
+            hourStart: 16*60,
+            stateNext: 'afternoon2',
+            tickCount: 8,
+            angleHourStart: 16*60,
+        },
+        'afternoon2': {
+            hourStart: 20*60,
+            stateNext: 'night1',
+            tickCount: 8,
+            angleHourStart: 16*60,
+        }
+    }
+}
+Object.freeze(mode_map)
+
 
 const weather_offset_x = 165;
 const weather_offset_y = 300;
@@ -51,19 +127,26 @@ function getDigitFontArray(size) {
 function getWeatherImageArray() {
     array = []
     for (i=0; i < 30; i++) {
-        array.push(`weather/${i}.png`)
+        array.push(`weather/${i}.png`);
     }
     return array
+}
+
+function getNumbersPath(clockMode, hourMode, state) {
+    return `faces/numbers_${clockMode}_${hourMode}_${state}.png`
+}
+
+function getTicksPath(hourCount) {
+    return `faces/ticks_${hourCount}.png`
 }
 
 function timeToAngle(time)
 {
     let angle;
+    let hourStart = mode_map[clock_mode][dialState].angleHourStart;
+    let hourCount = mode_map[clock_mode][dialState].tickCount;
 
-    if (time < 8*60)
-        angle = (time*6/8);
-    else
-        angle = (time-8*60)*6/16;
+    angle = (time-hourStart)*6/hourCount;
 
     angle = Math.round(angle*1000)/1000
     console.log(time, angle.toFixed(3), 'degrees')
@@ -73,6 +156,7 @@ function timeToAngle(time)
 
 function setTime(time)
 {
+
     let src = 'hands/hand_8_0.png';
 
     let angle = timeToAngle(time);
@@ -86,12 +170,11 @@ function setTime(time)
     });
 }
 
-let testDate = new TestDate(new Time(16, 0), 0, 0, 1);
-const states = {INIT:0, DAY:1, NIGHT:2}
-Object.freeze(states)
-let dialState = states.INIT;
+let testDate = new TestDate(new Time(21, 0), 0, 0, 1);
 let testMode = false;
 function setFace(minutes_increment) {
+
+    getHourMode()
 
     console.log("increment: " + minutes_increment)
 
@@ -119,32 +202,43 @@ function setFace(minutes_increment) {
     day = date.getDate();
     time = new Time(date.getHours(), date.getMinutes())
 
-    setTime(time);
 
-    switch (dialState) {
-        case states.INIT:
+    if (dialState === states.INIT) {
             updateDial = true;
             updateDate = true;
 
-            if (time < 8*60)
-                dialState = states.NIGHT;
-            else
-                dialState = states.DAY;
-            break;
-        case states.DAY:
-            if (time < 8*60) {
-                updateDial = true;
-                updateDate = true;
-                dialState = states.NIGHT;
+        console.log(JSON.stringify(mode_map[clock_mode]));
+        Object.keys(mode_map[clock_mode]).forEach(state => {
+            console.log('Init key: '  + state)
+            if (time >= mode_map[clock_mode][state].hourStart) {
+                dialState = state
             }
-            break;
-        case states.NIGHT:
-            if (time >= 8*60) {
-                updateDial = true;
-                dialState = states.DAY;
-            }
-            break;
+        })
+        console.log('Initialized to: ' + dialState)
+    } else {
+
+        let nextState = mode_map[clock_mode][dialState].stateNext;
+        let currentHourStart = mode_map[clock_mode][dialState].hourStart;
+        let nextHourStart = mode_map[clock_mode][nextState].hourStart;
+
+        console.log('currentState', dialState, 'nextState: ', nextState, 'currentStart:', currentHourStart, 'nextStart:', nextHourStart)
+
+        if ((nextHourStart > currentHourStart) && (time >= nextHourStart)) {
+            console.log('transition 1')
+            updateDial = true;
+            dialState = nextState;
+        }
+
+        console.log(time < currentHourStart)
+        if (time < currentHourStart) {
+            console.log('transition 2')
+            updateDial = true;
+            updateDate = true;
+            dialState = nextState;
+        }
     }
+
+    setTime(time);
 
     if (updateDial) {
         setIndicators(time)
@@ -159,20 +253,29 @@ function setFace(minutes_increment) {
 
 function getHourMode() {
     let currentType = editBg.getProperty(hmUI.prop.CURRENT_TYPE)
-    let hour_mode;
 
     console.log('Current type:' + editBg.getProperty(hmUI.prop.CURRENT_TYPE))
 
     switch (currentType) {
         case 1:
+            clock_mode = 'hex'
             hour_mode = '12hr'
             break;
         case 2:
+            clock_mode = 'hex'
+            hour_mode = '24hr'
+            break;
+        case 3:
+            clock_mode = 'octal'
+            hour_mode = '12hr'
+            break;
+        case 4:
+            clock_mode = 'octal'
             hour_mode = '24hr'
             break;
     }
 
-    console.log('hour_mode: ' + hour_mode)
+    console.log('hour_mode:', hour_mode, 'clock_mode', clock_mode)
 
     return hour_mode
 
@@ -180,13 +283,10 @@ function getHourMode() {
 
 function setIndicators(time) {
 
-    if (time < 8*60) {
-        srcTicks = 'faces/ticks_night.png'
-        srcNumbers = `faces/numbers_${getHourMode()}_night.png`
-    } else {
-        srcTicks = 'faces/ticks_day.png'
-        srcNumbers = `faces/numbers_${getHourMode()}_day.png`
-    }
+    console.log('dialState', dialState)
+    srcNumbers = getNumbersPath(clock_mode, hour_mode, dialState);
+    console.log('hourCount:', mode_map[clock_mode][dialState].tickCount)
+    srcTicks = getTicksPath(mode_map[clock_mode][dialState].tickCount);
 
     console.log(srcTicks)
     console.log(srcNumbers)
@@ -210,17 +310,17 @@ WatchFace({
 
         console.log('hi')
 
-        let BGROOT = 'faces/'
-
         editBg = hmUI.createWidget(hmUI.widget.WATCHFACE_EDIT_BG, {
           edit_id: 103,
           x: 0,
           y: 0,
           bg_config: [
-            { id: 1, preview: BGROOT + 'numbers_12hr_day_preview.png', path: BGROOT + 'empty.png' },
-            { id: 2, preview: BGROOT + 'numbers_24hr_day_preview.png', path: BGROOT + 'empty.png' },
+            { id: 1, preview: 'previews/hex_12hr_day_preview.png', path: 'empty.png' },
+            { id: 2, preview: 'previews/hex_24hr_day_preview.png', path: 'empty.png' },
+            { id: 3, preview: 'previews/octal_12hr_day_preview.png', path: 'empty.png' },
+            { id: 4, preview: 'previews/octal_24hr_day_preview.png', path: 'empty.png' },
           ],
-          count: 2,
+          count: 4,
           default_id: 1,
           fg: 'empty.png',
           tips_x: 466/2-130/2-5,
@@ -234,7 +334,6 @@ WatchFace({
             w: 466,
             h: 466,
             show_level: hmUI.show_level.ONLY_NORMAL,
-            src: 'faces/ticks_day.png'
         });
 
         circleImg = hmUI.createWidget(hmUI.widget.IMG, {
@@ -264,7 +363,6 @@ WatchFace({
             w: 466,
             h: 466,
             show_level: hmUI.show_level.ONLY_NORMAL,
-            src: `faces/numbers_${hour_mode}_day.png`
         });
 
 
