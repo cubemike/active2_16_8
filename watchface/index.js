@@ -29,80 +29,30 @@ const states = {INIT:'INIT', DAY:'DAY', AFTERNOON: 'AFTERNOON', NIGHT:'NIGHT'}
 Object.freeze(states)
 let dialState = states.INIT;
 
+function getMapObject(hourStart, stateNext, tickCount, angleHourStart, tickSrc) {
+    return {
+        hourStart: hourStart,
+        stateNext:stateNext,
+        tickCount:tickCount,
+        angleHourStart:angleHourStart,
+        tickSrc:tickSrc
+    }
+}
+
 const mode_map = {
     'hex': {
-        'night1': {
-            hourStart: 0*60,
-            stateNext: 'night2',
-            tickCount: 8,
-            angleHourStart: 0,
-            tickSrc: 'faces/ticks_8_15.png',
-        },
-        'night2': {
-            hourStart: 4*60,
-            stateNext: 'day1',
-            tickCount: 8,
-            angleHourStart: 0,
-            tickSrc: 'faces/ticks_8_15.png',
-        },
-        'day1': {
-            hourStart: 8*60,
-            stateNext: 'day2',
-            tickCount: 16,
-            angleHourStart: 8*60,
-            tickSrc: 'faces/ticks_16_15.png',
-        },
-        'day2': {
-            hourStart: 16*60,
-            stateNext: 'night1',
-            tickCount: 16,
-            angleHourStart: 8*60,
-            tickSrc: 'faces/ticks_16_15.png',
-        },
+            'night1': getMapObject(  0*60,     'night2',  8,    0, 'faces/ticks_8_15.png'  ),
+            'night2': getMapObject(  4*60,       'day1',  8,    0, 'faces/ticks_8_15.png'  ),
+              'day1': getMapObject(  8*60,       'day2', 16, 8*60, 'faces/ticks_16_15.png' ),
+              'day2': getMapObject( 16*60,     'night1', 16, 8*60, 'faces/ticks_16_15.png' ),
     },
     'octal': {
-        'night1': {
-            hourStart: 0*60,
-            stateNext: 'night2',
-            tickCount: 8,
-            angleHourStart: 0,
-            tickSrc: 'faces/ticks_8_15.png',
-        },
-        'night2': {
-            hourStart: 4*60,
-            stateNext: 'day1',
-            tickCount: 8,
-            angleHourStart: 0,
-            tickSrc: 'faces/ticks_8_15.png',
-        },
-        'day1': {
-            hourStart: 8*60,
-            stateNext: 'day2',
-            tickCount: 8,
-            angleHourStart: 8*60,
-            tickSrc: 'faces/ticks_8_5.png',
-        },
-        'day2': {
-            hourStart: 12*60,
-            stateNext: 'afternoon1',
-            tickCount: 8,
-            angleHourStart: 8*60,
-            tickSrc: 'faces/ticks_8_5.png',
-        },
-        'afternoon1': {
-            hourStart: 16*60,
-            stateNext: 'afternoon2',
-            tickCount: 8,
-            angleHourStart: 16*60,
-            tickSrc: 'faces/ticks_8_5.png',
-        },
-        'afternoon2': {
-            hourStart: 20*60,
-            stateNext: 'night1',
-            tickCount: 8,
-            angleHourStart: 16*60,
-            tickSrc: 'faces/ticks_8_5.png',
-        }
+            'night1': getMapObject(  0*60,     'night2', 8,     0, 'faces/ticks_8_15.png' ),
+            'night2': getMapObject(  4*60,       'day1', 8,     0, 'faces/ticks_8_15.png' ),
+              'day1': getMapObject(  8*60,       'day2', 8,  8*60, 'faces/ticks_8_5.png'  ),
+              'day2': getMapObject( 12*60, 'afternoon1', 8,  8*60, 'faces/ticks_8_5.png'  ),
+        'afternoon1': getMapObject( 16*60, 'afternoon2', 8, 16*60, 'faces/ticks_8_5.png'  ),
+        'afternoon2': getMapObject( 20*60,     'night1', 8, 16*60, 'faces/ticks_8_5.png'  ),
     }
 }
 Object.freeze(mode_map)
@@ -113,6 +63,10 @@ const weather_offset_y = 300;
 
 const date_offset_x = 112;
 const date_offset_y = 207;
+
+function log() {
+    console.log(...arguments, '\n')
+}
 
 function setMonth(month) {
     monthText.setProperty(hmUI.prop.MORE, {src: `months/${month}.png`});
@@ -159,7 +113,7 @@ function timeToAngle(time)
     angle = (time-hourStart)*6/hourCount;
 
     angle = Math.round(angle*1000)/1000
-    console.log(time, angle.toFixed(3), 'degrees')
+    log(time, angle.toFixed(3), 'degrees')
 
     return angle
 }
@@ -180,13 +134,13 @@ function setTime(time)
     });
 }
 
-let testDate = new TestDate(new Time(21, 0), 0, 0, 1);
+let testDate = new TestDate(new Time(22, 0), 0, 0, 1);
 let testMode = false;
 function setFace(minutes_increment) {
 
     getHourMode()
 
-    console.log("increment: " + minutes_increment)
+    log("increment: " + minutes_increment)
 
     let hour, month, weekday, day, date;
     let enteredWithTestMode = testMode;
@@ -203,6 +157,15 @@ function setFace(minutes_increment) {
         testDate.increment(minutes_increment)
     } else if (isSimulator) {
         date = testDate;
+        //if (testDate.getHours() == 2) {
+        //    testDate.increment(18*60)
+        //} else if (testDate.getHours() == 12) {
+        //    testDate.increment(18*60)
+        //} else if (testDate.getHours() == 20) {
+        //    testDate.increment(16*60)
+        //} else {
+        //    testDate.increment(20*60)
+        //}
     } else {
         date = new Date();
     }
@@ -212,45 +175,38 @@ function setFace(minutes_increment) {
     day = date.getDate();
     time = new Time(date.getHours(), date.getMinutes())
 
-
-    if (dialState === states.INIT) {
+    while (true) {
+        console.log(dialState);
+        if (dialState === states.INIT) {
             updateDial = true;
             updateDate = true;
+            dialState = Object.keys(mode_map[clock_mode])[0]
+        } else {
+            let nextState = mode_map[clock_mode][dialState].stateNext;
+            let currentHourStart = mode_map[clock_mode][dialState].hourStart;
+            let nextHourStart = mode_map[clock_mode][nextState].hourStart;
 
-        console.log(JSON.stringify(mode_map[clock_mode]));
-        Object.keys(mode_map[clock_mode]).forEach(state => {
-            console.log('Init key: '  + state)
-            if (time >= mode_map[clock_mode][state].hourStart) {
-                dialState = state
+            log('currentState', dialState, 'nextState: ', nextState, 'currentStart:', currentHourStart, 'nextStart:', nextHourStart)
+
+            if ((nextHourStart > currentHourStart) && (time >= nextHourStart)) {
+                log('transition 1')
+                updateDial = true;
+                dialState = nextState;
+            } else if (time < currentHourStart) {
+                log('transition 2')
+                updateDial = true;
+                updateDate = true;
+                dialState = nextState;
+            } else {
+                break;
             }
-        })
-        console.log('Initialized to: ' + dialState)
-    } else {
-
-        let nextState = mode_map[clock_mode][dialState].stateNext;
-        let currentHourStart = mode_map[clock_mode][dialState].hourStart;
-        let nextHourStart = mode_map[clock_mode][nextState].hourStart;
-
-        console.log('currentState', dialState, 'nextState: ', nextState, 'currentStart:', currentHourStart, 'nextStart:', nextHourStart)
-
-        if ((nextHourStart > currentHourStart) && (time >= nextHourStart)) {
-            console.log('transition 1')
-            updateDial = true;
-            dialState = nextState;
-        }
-
-        console.log(time < currentHourStart)
-        if (time < currentHourStart) {
-            console.log('transition 2')
-            updateDial = true;
-            updateDate = true;
-            dialState = nextState;
         }
     }
 
     setTime(time);
 
     if (updateDial) {
+        console.log('set indicators')
         setIndicators(time)
     }
 
@@ -264,7 +220,7 @@ function setFace(minutes_increment) {
 function getHourMode() {
     let currentType = editBg.getProperty(hmUI.prop.CURRENT_TYPE)
 
-    console.log('Current type:' + editBg.getProperty(hmUI.prop.CURRENT_TYPE))
+    log('Current type:' + editBg.getProperty(hmUI.prop.CURRENT_TYPE))
 
     switch (currentType) {
         case 1:
@@ -285,7 +241,7 @@ function getHourMode() {
             break;
     }
 
-    console.log('hour_mode:', hour_mode, 'clock_mode', clock_mode)
+    log('hour_mode:', hour_mode, 'clock_mode', clock_mode)
 
     return hour_mode
 
@@ -293,13 +249,13 @@ function getHourMode() {
 
 function setIndicators(time) {
 
-    console.log('dialState', dialState)
+    log('dialState', dialState)
     srcNumbers = getNumbersPath(clock_mode, hour_mode, dialState);
     srcTicks = mode_map[clock_mode][dialState].tickSrc;
-    console.log(srcTicks)
+    log(srcTicks)
 
-    console.log(srcTicks)
-    console.log(srcNumbers)
+    log(srcTicks)
+    log(srcNumbers)
 
 
     ticksImg.setProperty(hmUI.prop.MORE, {
@@ -311,14 +267,14 @@ function setIndicators(time) {
 }
 
 function weatherButton() {
-    console.log('weather pressed')
+    log('weather pressed')
     router.launchApp({appId: router.SYSTEM_APP_WEATHER, native: true});
 }
 
 WatchFace({
     init_view() {
 
-        console.log('hi')
+        log('hi')
 
         editBg = hmUI.createWidget(hmUI.widget.WATCHFACE_EDIT_BG, {
           edit_id: 103,
@@ -437,7 +393,7 @@ WatchFace({
             type: hmUI.data_type.WEATHER_CURRENT
         });
 
-        console.log(getDigitFontArray(50))
+        log(getDigitFontArray(50))
 
         weatherImg = hmUI.createWidget(hmUI.widget.IMG_LEVEL, {
             x: weather_offset_x + 110,
@@ -470,30 +426,32 @@ WatchFace({
         });
 
 
-        //console.log('Current type:' + editBg.getProperty(hmUI.prop.CURRENT_TYPE))
+        //log('Current type:' + editBg.getProperty(hmUI.prop.CURRENT_TYPE))
         //editBg.setProperty(hmUI.prop.PATH, 'faces/numbers_24hr_night.png')
-        console.log('Current type:' + editBg.getProperty(hmUI.prop.CURRENT_TYPE))
+        log('Current type:' + editBg.getProperty(hmUI.prop.CURRENT_TYPE))
 
         const widgetDelegate = hmUI.createWidget(hmUI.widget.WIDGET_DELEGATE, {
             resume_call: setFace,
         });
 
         //timer1 = timer.createTimer(1000, 250, setFace.bind(null, 1));
+        //setFace()
+        //setFace(60*6)
 
         batterySensor = hmSensor.createSensor(hmSensor.id.BATTERY)
         if (batterySensor.current == 0)
             isSimulator = true
 
-        console.log('done')
+        log('done')
     },
     onInit() {
-        console.log('index page.js on init invoke');
+        log('index page.js on init invoke');
     },
     build() {
         this.init_view();
-        console.log('index page.js on ready invoke');
+        log('index page.js on ready invoke');
     },
     onDestroy() {
-        console.log('index page.js on destroy invoke');
+        log('index page.js on destroy invoke');
     }
 });
