@@ -15,27 +15,20 @@ let weatherImg = null;
 let weatherLowTextImg = null;
 let weatherHighTextImg = null;
 let weatherCurrentTextImg = null;
-let editBg = ''
-
-let weatherSensor = null;
+let editBg = null;
 
 let isSimulator = false;
 let hour_mode = '12hr';
-
-const ClockModes = {HEX:'HEX', OCTAL:'OCTAL'};
 let clock_mode = 'octal';
-
-const states = {INIT:'INIT', DAY:'DAY', AFTERNOON: 'AFTERNOON', NIGHT:'NIGHT'}
-Object.freeze(states)
-let dialState = states.INIT;
+let testDate = new TestDate(new Time(22, 0), 0, 0, 1);
 
 function getMapObject(hourStart, stateNext, tickCount, angleHourStart, tickSrc) {
     return {
-        hourStart: hourStart,
-        stateNext:stateNext,
-        tickCount:tickCount,
-        angleHourStart:angleHourStart,
-        tickSrc:tickSrc
+        hourStart:      hourStart,
+        stateNext:      stateNext,
+        tickCount:      tickCount,
+        angleHourStart: angleHourStart,
+        tickSrc:        tickSrc
     }
 }
 
@@ -64,20 +57,36 @@ const weather_offset_y = 300;
 const date_offset_x = 112;
 const date_offset_y = 207;
 
+const heart_rate_offset_x = 180;
+const heart_rate_offset_y = 121;
+
 function log() {
     console.log(...arguments, '\n')
 }
 
 function setMonth(month) {
-    monthText.setProperty(hmUI.prop.MORE, {src: `months/${month}.png`});
+    const srcMonth =  `months/${month}.png`
+    if (srcMonth !== monthText.src) {
+        log('setting srcMonth:', srcMonth);
+        monthText.setProperty(hmUI.prop.MORE, {src: srcMonth});
+    }
 }
 
 function setDay(day) {
-    dayTextImg.setProperty(hmUI.prop.TEXT, `${(day<10?"0":"") + day}`);
+    const dayText =  `${(day<10?"0":"") + day}`
+    if (dayText !== dayTextImg.text) {
+        log('setting dayText:', dayText);
+        dayTextImg.setProperty(hmUI.prop.TEXT, dayText);
+        dayTextImg.text = dayText
+    }
 }
 
 function setWeekday(weekday) {
-    weekdayTextImg.setProperty(hmUI.prop.MORE, {src: `weekdays/${weekday}.png`});
+    const srcWeekday =  `weekdays/${weekday}.png`
+    if (srcWeekday !== weekdayTextImg.src) {
+        log('setting srcWeekday:', srcWeekday);
+        weekdayTextImg.setProperty(hmUI.prop.MORE, {src: srcWeekday});
+    }
 }
 
 function getDigitFontArray(size) {
@@ -104,9 +113,20 @@ function getTicksPath(hourCount) {
     return `faces/ticks_${hourCount}.png`
 }
 
+function getDialState(time) {
+    let dialState;
+    Object.keys(mode_map[clock_mode]).forEach(state => {
+        if (time >= mode_map[clock_mode][state].hourStart) {
+            dialState = state
+        }
+    })
+    return dialState
+}
+
 function timeToAngle(time)
 {
     let angle;
+    const dialState = getDialState(time)
     let hourStart = mode_map[clock_mode][dialState].angleHourStart;
     let hourCount = mode_map[clock_mode][dialState].tickCount;
 
@@ -134,93 +154,53 @@ function setTime(time)
     });
 }
 
-let testDate = new TestDate(new Time(22, 0), 0, 0, 1);
-let testMode = false;
 function setFace(minutes_increment) {
 
     getHourMode()
 
-    log("increment: " + minutes_increment)
-
-    let hour, month, weekday, day, date;
-    let enteredWithTestMode = testMode;
-    let updateDial = false;
-    let updateDate = false;
-
     if (typeof minutes_increment === 'number') {
         testMode = true
+        log("increment: " + minutes_increment)
     } else {
         testMode = false;
     }
     if (testMode) {
         date = testDate;
+        const prevHours = date.getHours()
         testDate.increment(minutes_increment)
+        if (testDate.getHours() < prevHours) {
+            testDate.incrementDate()
+        }
     } else if (isSimulator) {
         date = testDate;
-        //if (testDate.getHours() == 2) {
-        //    testDate.increment(18*60)
-        //} else if (testDate.getHours() == 12) {
-        //    testDate.increment(18*60)
-        //} else if (testDate.getHours() == 20) {
-        //    testDate.increment(16*60)
-        //} else {
-        //    testDate.increment(20*60)
-        //}
+        if (testDate.getHours() == 2) {
+            testDate.increment(18*60)
+        } else if (testDate.getHours() == 12) {
+            testDate.increment(18*60)
+        } else if (testDate.getHours() == 20) {
+            testDate.increment(16*60)
+        } else {
+            testDate.increment(20*60)
+        }
     } else {
         date = new Date();
     }
 
-    month = date.getMonth();
-    weekday = date.getDay();
-    day = date.getDate();
     time = new Time(date.getHours(), date.getMinutes())
 
-    while (true) {
-        console.log(dialState);
-        if (dialState === states.INIT) {
-            updateDial = true;
-            updateDate = true;
-            dialState = Object.keys(mode_map[clock_mode])[0]
-        } else {
-            let nextState = mode_map[clock_mode][dialState].stateNext;
-            let currentHourStart = mode_map[clock_mode][dialState].hourStart;
-            let nextHourStart = mode_map[clock_mode][nextState].hourStart;
-
-            log('currentState', dialState, 'nextState: ', nextState, 'currentStart:', currentHourStart, 'nextStart:', nextHourStart)
-
-            if ((nextHourStart > currentHourStart) && (time >= nextHourStart)) {
-                log('transition 1')
-                updateDial = true;
-                dialState = nextState;
-            } else if (time < currentHourStart) {
-                log('transition 2')
-                updateDial = true;
-                updateDate = true;
-                dialState = nextState;
-            } else {
-                break;
-            }
-        }
-    }
-
     setTime(time);
+    setIndicators(time)
 
-    if (updateDial) {
-        console.log('set indicators')
-        setIndicators(time)
-    }
+    setMonth(date.getMonth());
+    setWeekday(date.getDay());
+    setDay(date.getDate());
 
-    if (testMode || enteredWithTestMode || updateDate) {
-        setMonth(month);
-        setWeekday(weekday);
-        setDay(day);
-    }
 }
 
 function getHourMode() {
     let currentType = editBg.getProperty(hmUI.prop.CURRENT_TYPE)
 
-    log('Current type:' + editBg.getProperty(hmUI.prop.CURRENT_TYPE))
+    log('Current type:', editBg.getProperty(hmUI.prop.CURRENT_TYPE))
 
     switch (currentType) {
         case 1:
@@ -241,7 +221,8 @@ function getHourMode() {
             break;
     }
 
-    log('hour_mode:', hour_mode, 'clock_mode', clock_mode)
+    log('hour_mode:', hour_mode)
+    log('clock_mode:', clock_mode)
 
     return hour_mode
 
@@ -249,21 +230,23 @@ function getHourMode() {
 
 function setIndicators(time) {
 
-    log('dialState', dialState)
+    //log('dialState', dialState)
+    const dialState = getDialState(time)
     srcNumbers = getNumbersPath(clock_mode, hour_mode, dialState);
     srcTicks = mode_map[clock_mode][dialState].tickSrc;
-    log(srcTicks)
 
-    log(srcTicks)
-    log(srcNumbers)
-
-
-    ticksImg.setProperty(hmUI.prop.MORE, {
-        src: srcTicks
-    });
-    numbersImg.setProperty(hmUI.prop.MORE, {
-        src: srcNumbers
-    });
+    if (srcTicks !== ticksImg.src) {
+        log('setting srcTicks:', srcTicks)
+        ticksImg.setProperty(hmUI.prop.MORE, {
+            src: srcTicks
+        });
+    }
+    if (srcNumbers !== numbersImg.src) {
+        log('setting srcNumbers:', srcNumbers)
+        numbersImg.setProperty(hmUI.prop.MORE, {
+            src: srcNumbers
+        });
+    }
 }
 
 function weatherButton() {
@@ -331,16 +314,15 @@ WatchFace({
             show_level: hmUI.show_level.ONLY_NORMAL,
         });
 
-
         heartImg = hmUI.createWidget(hmUI.widget.IMG, {
-            x: 180,
-            y: 121,
+            x: heart_rate_offset_x + 0,
+            y: heart_rate_offset_y + 0,
             src: "icons8-heart-48.png"
         });
 
         heartTextImg = hmUI.createWidget(hmUI.widget.TEXT_IMG, {
-            x: 230,
-            y: 125,
+            x: heart_rate_offset_x + 50,
+            y: heart_rate_offset_y + 4,
             font_array: getDigitFontArray(50),
             type: hmUI.data_type.HEART
         });
@@ -420,9 +402,10 @@ WatchFace({
             h: 100,
             normal_src: 'weatherButton.png',
             press_src: 'weatherButton.png',
-            //normal_color: 0x00ffff,
-            //press_color: 0x00ffff,
-            click_func: setFace.bind(null, 60),
+            click_func: () => {
+                setFace(15);
+                log(''.padStart(40, '*'));
+            }
         });
 
 
@@ -431,7 +414,10 @@ WatchFace({
         log('Current type:' + editBg.getProperty(hmUI.prop.CURRENT_TYPE))
 
         const widgetDelegate = hmUI.createWidget(hmUI.widget.WIDGET_DELEGATE, {
-            resume_call: setFace,
+            resume_call: () => {
+                setFace();
+                log(''.padStart(40, '*'));
+            }
         });
 
         //timer1 = timer.createTimer(1000, 250, setFace.bind(null, 1));

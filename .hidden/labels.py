@@ -105,8 +105,8 @@ days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', ',']
 days = [d.lower() for d in days]
 day_colors = [blue, white, white, white, white, white, red, white]
 numbers_ = list('0123456789')
-numbers = numbers_ + list('.-°')
-numbers_names = numbers_ + ['dot', 'neg', 'deg']
+numbers = numbers_ + list('.-°%')
+numbers_names = numbers_ + ['dot', 'neg', 'deg', 'pct']
 
 text_height = 50
 digit_height = 25
